@@ -9,7 +9,9 @@ import { Modal } from './components/ui/Modal';
 import { Button } from './components/ui/Button';
 import { mockNotifications } from './data/mockData';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { Calendar } from 'lucide-react';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 
 function App() {
   const [activeView, setActiveView] = useLocalStorage('activeView', 'dashboard');
@@ -95,11 +97,31 @@ function App() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2"><Calendar className="inline-block h-6 w-6 text-blue-500" /> Calendar</h2>
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2"><CalendarIcon className="inline-block h-6 w-6 text-blue-500" /> Calendar</h2>
               <p className="text-gray-600">View all your project and task deadlines in one place.</p>
             </div>
-            <div className="bg-white rounded-xl p-8 border border-gray-200 text-center text-gray-400">
-              <p className="text-lg">(Calendar view coming soon!)</p>
+            <div className="bg-white rounded-xl p-8 border border-gray-200 flex flex-col items-center">
+              <Calendar
+                className="border-none shadow-none w-full max-w-lg rounded-xl calendar-animate"
+                prev2Label={null}
+                next2Label={null}
+              />
+              <style>{`
+                .calendar-animate .react-calendar__tile {
+                  transition: background 0.2s, transform 0.2s;
+                  border-radius: 0.75rem;
+                }
+                .calendar-animate .react-calendar__tile--active {
+                  background: #3b82f6 !important;
+                  color: #fff;
+                  border-radius: 0.75rem;
+                }
+                .calendar-animate .react-calendar__tile:enabled:hover, .calendar-animate .react-calendar__tile:enabled:focus {
+                  background: #dbeafe;
+                  color: #1e40af;
+                  transform: scale(1.05);
+                }
+              `}</style>
             </div>
           </div>
         );
