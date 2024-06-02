@@ -30,13 +30,13 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
   };
 
   return (
-    <Card hover className="cursor-pointer group" onClick={onClick}>
+    <Card hover className="cursor-pointer group transition-transform duration-300 hover:scale-105 hover:shadow-2xl" onClick={onClick}>
       <div className="space-y-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <div 
-                className="w-3 h-3 rounded-full" 
+                className="w-3 h-3 rounded-full transition-transform duration-300 group-hover:scale-125 group-hover:animate-pulse"
                 style={{ backgroundColor: project.color }}
               />
               <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
@@ -55,7 +55,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
               </Badge>
             </div>
           </div>
-          <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded">
+          <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded group-hover:rotate-90 transition-transform duration-300">
             <MoreHorizontal className="h-4 w-4 text-gray-500" />
           </button>
         </div>
@@ -66,11 +66,18 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
               <span>Progress</span>
               <span>{project.progress}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden group relative">
               <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${project.progress}%` }}
+                className="h-full rounded-full transition-all duration-700 ease-out"
+                style={{ 
+                  width: `${project.progress}%`,
+                  background: `linear-gradient(90deg, ${project.progress < 50 ? '#f59e0b' : project.progress < 100 ? '#3b82f6' : '#10b981'}, #a78bfa)`
+                }}
+                title={`Progress: ${project.progress}%`}
               />
+              <span className="absolute left-1/2 -translate-x-1/2 -top-7 text-xs bg-gray-900 text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none transition-transform duration-300 group-hover:-translate-y-2">
+                {project.progress}%
+              </span>
             </div>
           </div>
 
@@ -97,11 +104,11 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
                   src={member.avatar}
                   alt={member.name}
                   size="sm"
-                  className="ring-2 ring-white"
+                  className="ring-2 ring-white transition-transform duration-300 group-hover:scale-110"
                 />
               ))}
               {project.team.length > 3 && (
-                <div className="h-8 w-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs font-medium text-gray-600">
+                <div className="h-8 w-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs font-medium text-gray-600 transition-transform duration-300 group-hover:scale-110">
                   +{project.team.length - 3}
                 </div>
               )}

@@ -93,14 +93,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                     <span className="text-sm text-gray-600">{project.progress}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2 group relative overflow-visible">
                     <div 
-                      className="h-full rounded-full transition-all duration-700 ease-out"
+                      className="h-full rounded-full transition-all duration-700 ease-out group-hover:scale-y-125 group-hover:shadow-lg"
                       style={{ 
                         width: `${project.progress}%`,
-                        backgroundColor: project.color
+                        background: `linear-gradient(90deg, ${project.progress < 50 ? '#f59e0b' : project.progress < 100 ? '#3b82f6' : '#10b981'}, #a78bfa)`
                       }}
+                      title={`Progress: ${project.progress}%`}
                     />
+                    <span className="absolute left-1/2 -translate-x-1/2 -top-7 text-xs bg-gray-900 text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none transition-transform duration-300 group-hover:-translate-y-2">
+                      {project.progress}%
+                    </span>
                   </div>
                 </div>
               ))}
