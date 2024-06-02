@@ -7,7 +7,8 @@ import {
   Calendar,
   Settings,
   Bell,
-  Search
+  Search,
+  BarChart
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -22,6 +23,7 @@ const menuItems = [
   { id: 'tasks', label: 'Tasks', icon: CheckSquare },
   { id: 'team', label: 'Team', icon: Users },
   { id: 'calendar', label: 'Calendar', icon: Calendar },
+  { id: 'reports', label: 'Reports', icon: BarChart },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ 

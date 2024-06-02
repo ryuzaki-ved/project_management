@@ -9,6 +9,7 @@ import { Modal } from './components/ui/Modal';
 import { Button } from './components/ui/Button';
 import { mockNotifications } from './data/mockData';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { Calendar } from 'lucide-react';
 
 function App() {
   const [activeView, setActiveView] = useLocalStorage('activeView', 'dashboard');
@@ -87,6 +88,30 @@ function App() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        );
+      case 'calendar':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2"><Calendar className="inline-block h-6 w-6 text-blue-500" /> Calendar</h2>
+              <p className="text-gray-600">View all your project and task deadlines in one place.</p>
+            </div>
+            <div className="bg-white rounded-xl p-8 border border-gray-200 text-center text-gray-400">
+              <p className="text-lg">(Calendar view coming soon!)</p>
+            </div>
+          </div>
+        );
+      case 'reports':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Reports & Analytics</h2>
+              <p className="text-gray-600">Analyze your productivity and export project data.</p>
+            </div>
+            <div className="bg-white rounded-xl p-8 border border-gray-200 text-center text-gray-400">
+              <p className="text-lg">(Reports and analytics coming soon!)</p>
             </div>
           </div>
         );
