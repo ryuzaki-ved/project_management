@@ -7,7 +7,7 @@ import { TasksView } from './components/tasks/TasksView';
 import { TeamView } from './components/team/TeamView';
 import { Modal } from './components/ui/Modal';
 import { Button } from './components/ui/Button';
-import { mockNotifications } from './data/mockData';
+import { mockNotifications, mockProjects as initialMockProjects, mockTasks as initialMockTasks, mockUsers } from './data/mockData';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import Calendar from 'react-calendar';
@@ -19,6 +19,11 @@ function App() {
   const [showCreateProject, setShowCreateProject] = useState(false);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
+  const [projects, setProjects] = useState(initialMockProjects);
+  const [tasks, setTasks] = useState(initialMockTasks);
+  // Form state
+  const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'low', dueDate: '' });
+  const [newProject, setNewProject] = useState({ name: '', description: '', priority: 'low', endDate: '' });
 
   const unreadNotifications = mockNotifications.filter(n => !n.read).length;
 
@@ -41,6 +46,7 @@ function App() {
           <Dashboard
             onProjectClick={handleProjectClick}
             onTaskClick={handleTaskClick}
+            onViewAllProjects={() => setActiveView('projects')}
           />
         );
       case 'projects':
@@ -182,6 +188,8 @@ function App() {
               type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter task title..."
+              value={newTask.title}
+              onChange={e => setNewTask({ ...newTask, title: e.target.value })}
             />
           </div>
           <div>
@@ -192,6 +200,8 @@ function App() {
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Task description..."
+              value={newTask.description}
+              onChange={e => setNewTask({ ...newTask, description: e.target.value })}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -199,7 +209,10 @@ function App() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Priority
               </label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={newTask.priority}
+                onChange={e => setNewTask({ ...newTask, priority: e.target.value })}
+              >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -213,14 +226,36 @@ function App() {
               <input
                 type="date"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={newTask.dueDate}
+                onChange={e => setNewTask({ ...newTask, dueDate: e.target.value })}
               />
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4">
-            <Button variant="ghost" onClick={() => setShowCreateTask(false)}>
+            <Button variant="ghost" onClick={() => { setShowCreateTask(false); setNewTask({ title: '', description: '', priority: 'low', dueDate: '' }); }}>
               Cancel
             </Button>
-            <Button onClick={() => setShowCreateTask(false)}>
+            <Button onClick={() => {
+              setTasks([
+                ...tasks,
+                {
+                  id: (tasks.length + 1).toString(),
+                  title: newTask.title,
+                  description: newTask.description,
+                  status: 'todo',
+                  priority: newTask.priority as 'low' | 'medium' | 'high' | 'urgent',
+                  assignee: mockUsers[0],
+                  projectId: projects[0]?.id || '1',
+                  dueDate: newTask.dueDate,
+                  createdAt: new Date().toISOString(),
+                  tags: [],
+                  attachments: [],
+                  comments: []
+                }
+              ]);
+              setShowCreateTask(false);
+              setNewTask({ title: '', description: '', priority: 'low', dueDate: '' });
+            }} disabled={!newTask.title || !newTask.dueDate}>
               Create Task
             </Button>
           </div>
@@ -243,6 +278,8 @@ function App() {
               type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter project name..."
+              value={newProject.name}
+              onChange={e => setNewProject({ ...newProject, name: e.target.value })}
             />
           </div>
           <div>
@@ -253,6 +290,8 @@ function App() {
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Project description..."
+              value={newProject.description}
+              onChange={e => setNewProject({ ...newProject, description: e.target.value })}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -260,7 +299,10 @@ function App() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Priority
               </label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={newProject.priority}
+                onChange={e => setNewProject({ ...newProject, priority: e.target.value })}
+              >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -274,14 +316,36 @@ function App() {
               <input
                 type="date"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={newProject.endDate}
+                onChange={e => setNewProject({ ...newProject, endDate: e.target.value })}
               />
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4">
-            <Button variant="ghost" onClick={() => setShowCreateProject(false)}>
+            <Button variant="ghost" onClick={() => { setShowCreateProject(false); setNewProject({ name: '', description: '', priority: 'low', endDate: '' }); }}>
               Cancel
             </Button>
-            <Button onClick={() => setShowCreateProject(false)}>
+            <Button onClick={() => {
+              setProjects([
+                ...projects,
+                {
+                  id: (projects.length + 1).toString(),
+                  name: newProject.name,
+                  description: newProject.description,
+                  status: 'active',
+                  priority: newProject.priority as 'low' | 'medium' | 'high' | 'urgent',
+                  progress: 0,
+                  startDate: new Date().toISOString().slice(0, 10),
+                  endDate: newProject.endDate,
+                  team: [mockUsers[0]],
+                  color: '#3B82F6',
+                  tasksCount: 0,
+                  completedTasks: 0
+                }
+              ]);
+              setShowCreateProject(false);
+              setNewProject({ name: '', description: '', priority: 'low', endDate: '' });
+            }} disabled={!newProject.name || !newProject.endDate}>
               Create Project
             </Button>
           </div>

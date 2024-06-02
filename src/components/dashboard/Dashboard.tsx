@@ -18,11 +18,13 @@ import { mockProjects, mockTasks, mockUsers } from '../../data/mockData';
 interface DashboardProps {
   onProjectClick: (projectId: string) => void;
   onTaskClick: (taskId: string) => void;
+  onViewAllProjects: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
   onProjectClick,
-  onTaskClick
+  onTaskClick,
+  onViewAllProjects
 }) => {
   const activeProjects = mockProjects.filter(p => p.status === 'active');
   const completedTasks = mockTasks.filter(t => t.status === 'completed').length;
@@ -146,7 +148,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Recent Projects</h3>
-            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium" onClick={onViewAllProjects}>
               View all
             </button>
           </div>
