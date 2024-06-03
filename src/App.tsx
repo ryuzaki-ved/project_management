@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { Dashboard } from './components/dashboard/Dashboard';
@@ -12,6 +12,7 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
   const [activeView, setActiveView] = useLocalStorage('activeView', 'dashboard');
@@ -156,6 +157,27 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    // Show toasts for upcoming deadlines (tasks due in next 3 days)
+    const today = new Date();
+    const threeDaysFromNow = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);
+    tasks.forEach(task => {
+      const due = new Date(task.dueDate);
+      if (due >= today && due <= threeDaysFromNow && task.status !== 'completed') {
+        toast.custom(t => (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded shadow-lg animate-fade-in flex items-center gap-3">
+            <span className="text-yellow-500 text-xl">⚠️</span>
+            <div>
+              <div className="font-semibold text-yellow-800">Upcoming Deadline</div>
+              <div className="text-yellow-700 text-sm">{task.title} is due on {due.toLocaleDateString()}</div>
+            </div>
+            <button onClick={() => toast.dismiss(t.id)} className="ml-4 px-2 py-1 text-xs rounded bg-yellow-100 hover:bg-yellow-200 text-yellow-800">Dismiss</button>
+          </div>
+        ), { duration: 6000 });
+      }
+    });
+  }, [tasks]);
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar
@@ -261,6 +283,7 @@ function App() {
               ]);
               setShowCreateTask(false);
               setNewTask({ title: '', description: '', priority: 'low', dueDate: '' });
+              toast.success('Task created!');
             }} disabled={!newTask.title || !newTask.dueDate}>
               Create Task
             </Button>
@@ -351,6 +374,7 @@ function App() {
               ]);
               setShowCreateProject(false);
               setNewProject({ name: '', description: '', priority: 'low', endDate: '' });
+              toast.success('Project created!');
             }} disabled={!newProject.name || !newProject.endDate}>
               Create Project
             </Button>
@@ -440,6 +464,8 @@ function App() {
           }
         `}</style>
       </Modal>
+
+      <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
     </div>
   );
 }

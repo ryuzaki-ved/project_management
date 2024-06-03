@@ -5,7 +5,8 @@ import {
   Users, 
   Clock,
   TrendingUp,
-  Calendar
+  Calendar,
+  Bell
 } from 'lucide-react';
 import { StatsCard } from './StatsCard';
 import { ProjectCard } from '../projects/ProjectCard';
@@ -169,16 +170,42 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <Calendar className="h-5 w-5 text-gray-400" />
           </div>
           <div className="space-y-4">
-            {upcomingTasks.slice(0, 2).map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onClick={() => onTaskClick(task.id)}
-              />
-            ))}
+            {upcomingTasks.slice(0, 4).map((task) => {
+              const due = new Date(task.dueDate);
+              const today = new Date();
+              const isOverdue = due < today && task.status !== 'completed';
+              const isSoon = due >= today && due <= new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);
+              return (
+                <div key={task.id} className="relative group transition-transform duration-200 hover:scale-105">
+                  <TaskCard task={task} onClick={() => onTaskClick(task.id)} />
+                  {isOverdue && (
+                    <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full animate-pulse z-10">Overdue</span>
+                  )}
+                  {isSoon && !isOverdue && (
+                    <span className="absolute top-2 right-2 bg-yellow-400 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1 animate-bounce z-10">
+                      <Bell className="h-3 w-3 animate-ring" /> Soon
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+<style>{`
+@keyframes ring {
+  0% { transform: rotate(0); }
+  10% { transform: rotate(-15deg); }
+  20% { transform: rotate(10deg); }
+  30% { transform: rotate(-10deg); }
+  40% { transform: rotate(6deg); }
+  50% { transform: rotate(-4deg); }
+  60% { transform: rotate(0); }
+  100% { transform: rotate(0); }
+}
+.animate-ring { animation: ring 1s infinite; }
+`}</style>
