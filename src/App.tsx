@@ -9,10 +9,11 @@ import { Modal } from './components/ui/Modal';
 import { Button } from './components/ui/Button';
 import { mockNotifications, mockProjects as initialMockProjects, mockTasks as initialMockTasks, mockUsers } from './data/mockData';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { Calendar as CalendarIcon, Settings as SettingsIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Settings as SettingsIcon, Plus, Filter as FilterIcon, User as UserIcon, FolderKanban as FolderIcon, ListChecks as StatusIcon } from 'lucide-react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import toast, { Toaster } from 'react-hot-toast';
+import { Task, Project } from './types';
 
 function App() {
   const [activeView, setActiveView] = useLocalStorage('activeView', 'dashboard');
@@ -35,6 +36,16 @@ function App() {
   });
 
   const unreadNotifications = mockNotifications.filter(n => !n.read).length;
+
+  // Calendar state
+  const [calendarDate, setCalendarDate] = useState(new Date());
+  const [calendarModalOpen, setCalendarModalOpen] = useState(false);
+  const [calendarModalTasks, setCalendarModalTasks] = useState<Task[]>([]);
+  const [calendarModalProjects, setCalendarModalProjects] = useState<Project[]>([]);
+  const [calendarFilter, setCalendarFilter] = useState({ project: 'all', user: 'all', status: 'all' });
+  const [showCalendarCreate, setShowCalendarCreate] = useState(false);
+  const [calendarCreateType, setCalendarCreateType] = useState<'task' | 'project'>('task');
+  const [calendarCreateDate, setCalendarCreateDate] = useState<string | null>(null);
 
   const handleProjectClick = (projectId: string) => {
     setSelectedProject(projectId);
@@ -109,17 +120,91 @@ function App() {
           </div>
         );
       case 'calendar':
+        const deadlineDates = getAllDeadlineDates();
         return (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><CalendarIcon className="inline-block h-6 w-6 text-blue-500" /> Calendar</h2>
-              <p className="text-gray-600 dark:text-gray-300">View all your project and task deadlines in one place.</p>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><CalendarIcon className="inline-block h-6 w-6 text-blue-500" /> Calendar</h2>
+                <p className="text-gray-600 dark:text-gray-300">View all your project and task deadlines in one place.</p>
+              </div>
+              <div className="flex flex-wrap gap-2 items-center">
+                <div className="flex items-center gap-1">
+                  <FolderIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  <select value={calendarFilter.project} onChange={e => setCalendarFilter(f => ({ ...f, project: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded px-2 py-1 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                    <option value="all">All Projects</option>
+                    {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                </div>
+                <div className="flex items-center gap-1">
+                  <UserIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  <select value={calendarFilter.user} onChange={e => setCalendarFilter(f => ({ ...f, user: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded px-2 py-1 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                    <option value="all">All Users</option>
+                    {mockUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                  </select>
+                </div>
+                <div className="flex items-center gap-1">
+                  <StatusIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  <select value={calendarFilter.status} onChange={e => setCalendarFilter(f => ({ ...f, status: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded px-2 py-1 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                    <option value="all">All Statuses</option>
+                    <option value="todo">To Do</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="review">Review</option>
+                    <option value="completed">Completed</option>
+                    <option value="active">Active</option>
+                    <option value="on-hold">On Hold</option>
+                  </select>
+                </div>
+              </div>
             </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-8 border border-gray-200 dark:border-gray-800 flex flex-col items-center">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-8 border border-gray-200 dark:border-gray-800 flex flex-col items-center relative">
+              <button
+                className="absolute top-4 right-4 flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded shadow transition-all"
+                onClick={() => { setShowCalendarCreate(true); setCalendarCreateType('task'); setCalendarCreateDate(null); }}
+              >
+                <Plus className="h-4 w-4" /> Add Task/Project
+              </button>
               <Calendar
                 className="border-none shadow-none w-full max-w-lg rounded-xl calendar-animate bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 prev2Label={null}
                 next2Label={null}
+                value={calendarDate}
+                onClickDay={date => {
+                  setCalendarDate(date);
+                  const { tasks, projects } = getDeadlinesForDate(date);
+                  setCalendarModalTasks(tasks);
+                  setCalendarModalProjects(projects);
+                  setCalendarModalOpen(true);
+                }}
+                tileContent={({ date, view }) => {
+                  if (view !== 'month') return null;
+                  const dateStr = date.toISOString().slice(0, 10);
+                  const isToday = new Date().toISOString().slice(0, 10) === dateStr;
+                  const { tasks, projects } = getDeadlinesForDate(date);
+                  if (tasks.length === 0 && projects.length === 0) return isToday ? <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mx-auto mt-1 animate-pulse" /> : null;
+                  // Show colored dots for tasks/projects
+                  return (
+                    <div className="flex justify-center gap-0.5 mt-1">
+                      {tasks.length > 0 && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" title={`${tasks.length} task(s)`} />}
+                      {projects.length > 0 && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" title={`${projects.length} project(s)`} />}
+                      {isToday && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" title="Today" />}
+                    </div>
+                  );
+                }}
+                tileClassName={({ date, view }) => {
+                  if (view !== 'month') return '';
+                  const dateStr = date.toISOString().slice(0, 10);
+                  const { tasks, projects } = getDeadlinesForDate(date);
+                  const isSoon = tasks.some(t => {
+                    const due = new Date(t.dueDate);
+                    const now = new Date();
+                    return due >= now && due <= new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000) && t.status !== 'completed';
+                  });
+                  const isOverdue = tasks.some(t => new Date(t.dueDate) < new Date() && t.status !== 'completed');
+                  if (isOverdue) return 'ring-2 ring-red-400';
+                  if (isSoon) return 'ring-2 ring-yellow-400';
+                  return '';
+                }}
               />
               <style>{`
                 .calendar-animate .react-calendar__tile {
@@ -150,6 +235,161 @@ function App() {
                 }
               `}</style>
             </div>
+
+            {/* Calendar Day Modal */}
+            <Modal
+              isOpen={calendarModalOpen}
+              onClose={() => setCalendarModalOpen(false)}
+              title={`Deadlines for ${calendarDate.toLocaleDateString()}`}
+              size="lg"
+            >
+              <div className="space-y-4">
+                {calendarModalTasks.length === 0 && calendarModalProjects.length === 0 && (
+                  <div className="text-center text-gray-500 dark:text-gray-400">No tasks or projects due on this day.</div>
+                )}
+                {calendarModalTasks.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-blue-600 dark:text-blue-400 mb-2">Tasks</h4>
+                    <ul className="space-y-2">
+                      {calendarModalTasks.map(task => (
+                        <li key={task.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-3">
+                          <div>
+                            <div className="font-medium text-gray-900 dark:text-white">{task.title}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{task.description}</div>
+                            <div className="text-xs mt-1">
+                              <span className="inline-block px-2 py-0.5 rounded bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 mr-2">{task.status}</span>
+                              <span className="inline-block px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">{task.priority}</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <Button size="sm" variant="secondary" onClick={() => { setSelectedTask(task.id); setActiveView('tasks'); setCalendarModalOpen(false); }}>View</Button>
+                            <Button size="sm" variant="primary" onClick={() => { setTasks(ts => ts.map(t => t.id === task.id ? { ...t, status: 'completed' } : t)); }}>Mark Complete</Button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {calendarModalProjects.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-green-600 dark:text-green-400 mb-2">Projects</h4>
+                    <ul className="space-y-2">
+                      {calendarModalProjects.map(project => (
+                        <li key={project.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded p-3">
+                          <div>
+                            <div className="font-medium text-gray-900 dark:text-white">{project.name}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{project.description}</div>
+                            <div className="text-xs mt-1">
+                              <span className="inline-block px-2 py-0.5 rounded bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 mr-2">{project.status}</span>
+                              <span className="inline-block px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">{project.priority}</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <Button size="sm" variant="secondary" onClick={() => { setSelectedProject(project.id); setActiveView('projects'); setCalendarModalOpen(false); }}>View</Button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </Modal>
+
+            {/* Calendar Quick Create Modal */}
+            <Modal
+              isOpen={showCalendarCreate}
+              onClose={() => setShowCalendarCreate(false)}
+              title={`Create New ${calendarCreateType === 'task' ? 'Task' : 'Project'}`}
+              size="md"
+            >
+              <form className="space-y-4" onSubmit={e => {
+                e.preventDefault();
+                if (calendarCreateType === 'task') {
+                  setTasks(ts => [
+                    ...ts,
+                    {
+                      id: (tasks.length + 1).toString(),
+                      title: newTask.title,
+                      description: newTask.description,
+                      priority: newTask.priority,
+                      dueDate: calendarCreateDate || new Date().toISOString().slice(0, 10),
+                      status: 'todo',
+                      assignee: mockUsers[0],
+                      tags: [],
+                      comments: [],
+                      attachments: [],
+                      projectId: projects[0]?.id || '1',
+                      createdAt: new Date().toISOString().slice(0, 10),
+                    } as Task
+                  ]);
+                  setShowCalendarCreate(false);
+                  setNewTask({ title: '', description: '', priority: 'low', dueDate: '' });
+                  toast.success('Task created!');
+                } else {
+                  setProjects(ps => [
+                    ...ps,
+                    {
+                      id: (projects.length + 1).toString(),
+                      name: newProject.name,
+                      description: newProject.description,
+                      status: 'active',
+                      priority: newProject.priority as 'low' | 'medium' | 'high' | 'urgent',
+                      progress: 0,
+                      startDate: new Date().toISOString().slice(0, 10),
+                      endDate: calendarCreateDate || new Date().toISOString().slice(0, 10),
+                      team: [mockUsers[0]],
+                      color: '#3B82F6',
+                      tasksCount: 0,
+                      completedTasks: 0
+                    }
+                  ]);
+                  setShowCalendarCreate(false);
+                  setNewProject({ name: '', description: '', priority: 'low', endDate: '' });
+                  toast.success('Project created!');
+                }
+              }}>
+                <div className="flex gap-2 mb-2">
+                  <Button type="button" variant={calendarCreateType === 'task' ? 'primary' : 'secondary'} onClick={() => setCalendarCreateType('task')}>Task</Button>
+                  <Button type="button" variant={calendarCreateType === 'project' ? 'primary' : 'secondary'} onClick={() => setCalendarCreateType('project')}>Project</Button>
+                </div>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center font-semibold text-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                  value={calendarCreateType === 'task' ? newTask.title : newProject.name}
+                  onChange={e => calendarCreateType === 'task' ? setNewTask(nt => ({ ...nt, title: e.target.value })) : setNewProject(np => ({ ...np, name: e.target.value }))}
+                  placeholder={calendarCreateType === 'task' ? 'Task Title' : 'Project Name'}
+                  required
+                />
+                <textarea
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                  value={calendarCreateType === 'task' ? newTask.description : newProject.description}
+                  onChange={e => calendarCreateType === 'task' ? setNewTask(nt => ({ ...nt, description: e.target.value })) : setNewProject(np => ({ ...np, description: e.target.value }))}
+                  placeholder={calendarCreateType === 'task' ? 'Task Description' : 'Project Description'}
+                  required
+                />
+                <div className="flex gap-2">
+                  <select
+                    className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                    value={calendarCreateType === 'task' ? newTask.priority : newProject.priority}
+                    onChange={e => calendarCreateType === 'task' ? setNewTask(nt => ({ ...nt, priority: e.target.value })) : setNewProject(np => ({ ...np, priority: e.target.value }))}
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                  <input
+                    type="date"
+                    className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                    value={calendarCreateDate || ''}
+                    onChange={e => setCalendarCreateDate(e.target.value)}
+                  />
+                </div>
+                <div className="flex justify-end pt-4">
+                  <Button type="submit">Create {calendarCreateType === 'task' ? 'Task' : 'Project'}</Button>
+                </div>
+              </form>
+            </Modal>
           </div>
         );
       case 'reports':
@@ -240,6 +480,50 @@ function App() {
       }
     });
   }, [tasks]);
+
+  // Helper: get all deadlines for a date (filtered)
+  const getDeadlinesForDate = (date: Date) => {
+    const dateStr = date.toISOString().slice(0, 10);
+    let filteredTasks = tasks.filter(t => t.dueDate === dateStr);
+    let filteredProjects = projects.filter(p => p.endDate === dateStr);
+    if (calendarFilter.project !== 'all') {
+      filteredTasks = filteredTasks.filter(t => t.projectId === calendarFilter.project);
+      filteredProjects = filteredProjects.filter(p => p.id === calendarFilter.project);
+    }
+    if (calendarFilter.user !== 'all') {
+      filteredTasks = filteredTasks.filter(t => t.assignee.id === calendarFilter.user);
+      filteredProjects = filteredProjects.filter(p => p.team.some(u => u.id === calendarFilter.user));
+    }
+    if (calendarFilter.status !== 'all') {
+      filteredTasks = filteredTasks.filter(t => t.status === calendarFilter.status);
+      filteredProjects = filteredProjects.filter(p => p.status === calendarFilter.status);
+    }
+    return { tasks: filteredTasks, projects: filteredProjects };
+  };
+
+  // Helper: get all dates with deadlines (filtered)
+  const getAllDeadlineDates = () => {
+    let allDates = new Set();
+    tasks.forEach(t => {
+      if (
+        (calendarFilter.project === 'all' || t.projectId === calendarFilter.project) &&
+        (calendarFilter.user === 'all' || t.assignee.id === calendarFilter.user) &&
+        (calendarFilter.status === 'all' || t.status === calendarFilter.status)
+      ) {
+        allDates.add(t.dueDate);
+      }
+    });
+    projects.forEach(p => {
+      if (
+        (calendarFilter.project === 'all' || p.id === calendarFilter.project) &&
+        (calendarFilter.user === 'all' || p.team.some(u => u.id === calendarFilter.user)) &&
+        (calendarFilter.status === 'all' || p.status === calendarFilter.status)
+      ) {
+        allDates.add(p.endDate);
+      }
+    });
+    return Array.from(allDates);
+  };
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950 dark:text-gray-100">
