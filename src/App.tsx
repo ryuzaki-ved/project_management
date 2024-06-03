@@ -24,6 +24,10 @@ function App() {
   // Form state
   const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'low', dueDate: '' });
   const [newProject, setNewProject] = useState({ name: '', description: '', priority: 'low', endDate: '' });
+  const [showProfile, setShowProfile] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editProfile, setEditProfile] = useState({ name: mockUsers[0].name, email: mockUsers[0].email });
+  const currentUser = mockUsers[0];
 
   const unreadNotifications = mockNotifications.filter(n => !n.read).length;
 
@@ -165,6 +169,8 @@ function App() {
           onCreateTask={() => setShowCreateTask(true)}
           onCreateProject={() => setShowCreateProject(true)}
           notificationCount={unreadNotifications}
+          onProfileClick={() => setShowProfile(true)}
+          onNotificationsClick={() => setActiveView('notifications')}
         />
         
         <main className="flex-1 overflow-auto p-6">
@@ -350,6 +356,89 @@ function App() {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* Profile Dashboard Modal */}
+      <Modal
+        isOpen={showProfile}
+        onClose={() => setShowProfile(false)}
+        title="Profile Dashboard"
+        size="md"
+      >
+        <div className="flex flex-col items-center gap-4 animate-fade-in">
+          <div className="relative">
+            <img
+              src={currentUser.avatar}
+              alt={currentUser.name}
+              className="h-24 w-24 rounded-full object-cover ring-4 ring-blue-200 shadow-xl transition-transform duration-300 hover:scale-105"
+            />
+            <span className={`absolute bottom-2 right-2 h-4 w-4 rounded-full border-2 border-white ${currentUser.status === 'online' ? 'bg-green-400' : currentUser.status === 'away' ? 'bg-yellow-400' : 'bg-gray-400'}`}></span>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 transition-colors duration-300 hover:text-blue-600">{currentUser.name}</h3>
+          <p className="text-gray-500">{currentUser.email}</p>
+          <div className="flex gap-2 mt-2">
+            <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium transition-all duration-200 hover:bg-blue-200">{currentUser.role}</span>
+            <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium transition-all duration-200 hover:bg-gray-200 capitalize">{currentUser.status}</span>
+          </div>
+          <div className="w-full mt-6">
+            <button className="w-full py-2 rounded-lg bg-blue-600 text-white font-semibold shadow-md hover:bg-blue-700 transition-all duration-200" onClick={() => { setShowEditProfile(true); setShowProfile(false); }}>Edit Profile</button>
+            <button className="w-full py-2 mt-2 rounded-lg bg-gray-100 text-gray-700 font-semibold shadow hover:bg-gray-200 transition-all duration-200" onClick={() => setShowProfile(false)}>Close</button>
+          </div>
+        </div>
+        <style>{`
+          .animate-fade-in {
+            animation: fadeIn 0.5s;
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: none; }
+          }
+        `}</style>
+      </Modal>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        isOpen={showEditProfile}
+        onClose={() => setShowEditProfile(false)}
+        title="Edit Profile"
+        size="sm"
+      >
+        <form className="space-y-6 animate-fade-in" onSubmit={e => { e.preventDefault(); setShowEditProfile(false); }}>
+          <div className="flex flex-col items-center gap-2">
+            <img
+              src={currentUser.avatar}
+              alt={editProfile.name}
+              className="h-20 w-20 rounded-full object-cover ring-2 ring-blue-200 shadow-md mb-2"
+            />
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center font-semibold text-lg"
+              value={editProfile.name}
+              onChange={e => setEditProfile({ ...editProfile, name: e.target.value })}
+              placeholder="Name"
+            />
+            <input
+              type="email"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+              value={editProfile.email}
+              onChange={e => setEditProfile({ ...editProfile, email: e.target.value })}
+              placeholder="Email"
+            />
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Button variant="ghost" onClick={() => setShowEditProfile(false)} type="button">Cancel</Button>
+            <Button type="submit" disabled={!editProfile.name || !editProfile.email}>Save</Button>
+          </div>
+        </form>
+        <style>{`
+          .animate-fade-in {
+            animation: fadeIn 0.5s;
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: none; }
+          }
+        `}</style>
       </Modal>
     </div>
   );

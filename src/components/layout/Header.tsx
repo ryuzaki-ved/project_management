@@ -8,12 +8,16 @@ interface HeaderProps {
   onCreateTask: () => void;
   onCreateProject: () => void;
   notificationCount: number;
+  onProfileClick?: () => void;
+  onNotificationsClick?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
   onCreateTask, 
   onCreateProject, 
-  notificationCount 
+  notificationCount, 
+  onProfileClick,
+  onNotificationsClick
 }) => {
   const currentUser = mockUsers[0];
 
@@ -51,7 +55,11 @@ export const Header: React.FC<HeaderProps> = ({
               <MessageSquare className="h-5 w-5" />
             </button>
             
-            <button className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+            <button
+              className="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 focus:outline-none active:scale-95"
+              onClick={onNotificationsClick}
+              aria-label="Open notifications"
+            >
               <Bell className="h-5 w-5" />
               {notificationCount > 0 && (
                 <div className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
@@ -60,12 +68,18 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
 
-            <Avatar
-              src={currentUser.avatar}
-              alt={currentUser.name}
-              size="md"
-              status={currentUser.status}
-            />
+            <button
+              onClick={onProfileClick}
+              className="focus:outline-none transition-transform duration-200 hover:scale-110"
+              aria-label="Open profile dashboard"
+            >
+              <Avatar
+                src={currentUser.avatar}
+                alt={currentUser.name}
+                size="md"
+                status={currentUser.status}
+              />
+            </button>
           </div>
         </div>
       </div>
