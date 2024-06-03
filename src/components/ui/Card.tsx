@@ -26,8 +26,8 @@ export const Card: React.FC<CardProps> = ({
     <div
       onClick={onClick}
       className={`
-        bg-white rounded-xl border border-gray-200 shadow-sm backdrop-blur-sm
-        ${hover ? 'transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-gray-300' : ''}
+        bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm backdrop-blur-sm
+        ${hover ? 'transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-gray-300 dark:hover:border-gray-600' : ''}
         ${paddingClasses[padding]}
         ${className}
         ${onClick ? 'cursor-pointer' : ''}

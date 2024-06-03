@@ -42,11 +42,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <Flag className={`h-4 w-4 ${getPriorityColor(task.priority)}`} />
-              <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+              <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
                 {task.title}
               </h3>
             </div>
-            <p className="text-gray-600 text-sm line-clamp-2 mb-2">
+            <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-2">
               {task.description}
             </p>
             <Badge variant={getStatusVariant(task.status)}>
@@ -59,14 +59,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
           {task.tags.map((tag) => (
             <span
               key={tag}
-              className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md"
+              className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs rounded-md"
             >
               {tag}
             </span>
           ))}
         </div>
 
-        <div className="flex items-center justify-between text-sm text-gray-500">
+        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
           <div className="flex items-center gap-3">
             {task.attachments.length > 0 && (
               <div className="flex items-center gap-1">

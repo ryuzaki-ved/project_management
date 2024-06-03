@@ -9,7 +9,7 @@ import { Modal } from './components/ui/Modal';
 import { Button } from './components/ui/Button';
 import { mockNotifications, mockProjects as initialMockProjects, mockTasks as initialMockTasks, mockUsers } from './data/mockData';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Settings as SettingsIcon } from 'lucide-react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import toast, { Toaster } from 'react-hot-toast';
@@ -29,6 +29,10 @@ function App() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [editProfile, setEditProfile] = useState({ name: mockUsers[0].name, email: mockUsers[0].email });
   const currentUser = mockUsers[0];
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem('settings');
+    return saved ? JSON.parse(saved) : { darkMode: false, notifications: true };
+  });
 
   const unreadNotifications = mockNotifications.filter(n => !n.read).length;
 
@@ -108,12 +112,12 @@ function App() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2"><CalendarIcon className="inline-block h-6 w-6 text-blue-500" /> Calendar</h2>
-              <p className="text-gray-600">View all your project and task deadlines in one place.</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><CalendarIcon className="inline-block h-6 w-6 text-blue-500" /> Calendar</h2>
+              <p className="text-gray-600 dark:text-gray-300">View all your project and task deadlines in one place.</p>
             </div>
-            <div className="bg-white rounded-xl p-8 border border-gray-200 flex flex-col items-center">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-8 border border-gray-200 dark:border-gray-800 flex flex-col items-center">
               <Calendar
-                className="border-none shadow-none w-full max-w-lg rounded-xl calendar-animate"
+                className="border-none shadow-none w-full max-w-lg rounded-xl calendar-animate bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 prev2Label={null}
                 next2Label={null}
               />
@@ -132,6 +136,18 @@ function App() {
                   color: #1e40af;
                   transform: scale(1.05);
                 }
+                .dark .calendar-animate .react-calendar__tile {
+                  background: #18181b;
+                  color: #e5e7eb;
+                }
+                .dark .calendar-animate .react-calendar__tile--active {
+                  background: #2563eb !important;
+                  color: #fff;
+                }
+                .dark .calendar-animate .react-calendar__tile:enabled:hover, .dark .calendar-animate .react-calendar__tile:enabled:focus {
+                  background: #1e293b;
+                  color: #60a5fa;
+                }
               `}</style>
             </div>
           </div>
@@ -140,12 +156,50 @@ function App() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Reports & Analytics</h2>
-              <p className="text-gray-600">Analyze your productivity and export project data.</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Reports & Analytics</h2>
+              <p className="text-gray-600 dark:text-gray-300">Analyze your productivity and export project data.</p>
             </div>
-            <div className="bg-white rounded-xl p-8 border border-gray-200 text-center text-gray-400">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-8 border border-gray-200 dark:border-gray-800 text-center text-gray-400 dark:text-gray-500">
               <p className="text-lg">(Reports and analytics coming soon!)</p>
             </div>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="max-w-xl mx-auto bg-white dark:bg-gray-900 rounded-xl shadow p-8 animate-fade-in">
+            <div className="flex items-center gap-3 mb-6">
+              <SettingsIcon className="h-7 w-7 text-blue-500" />
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h2>
+            </div>
+            <form className="space-y-6" onSubmit={e => { e.preventDefault(); toast.success('Settings saved!'); }}>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700 dark:text-gray-200">Dark Mode</span>
+                <button
+                  type="button"
+                  className={`w-12 h-6 flex items-center bg-gray-200 dark:bg-gray-700 rounded-full p-1 transition-colors duration-300 ${settings.darkMode ? 'bg-blue-600' : ''}`}
+                  onClick={() => setSettings((s: typeof settings) => ({ ...s, darkMode: !s.darkMode }))}
+                >
+                  <span className={`h-4 w-4 bg-white rounded-full shadow transform transition-transform duration-300 ${settings.darkMode ? 'translate-x-6' : ''}`}></span>
+                </button>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700 dark:text-gray-200">Enable Notifications</span>
+                <button
+                  type="button"
+                  className={`w-12 h-6 flex items-center bg-gray-200 dark:bg-gray-700 rounded-full p-1 transition-colors duration-300 ${settings.notifications ? 'bg-blue-600' : ''}`}
+                  onClick={() => setSettings((s: typeof settings) => ({ ...s, notifications: !s.notifications }))}
+                >
+                  <span className={`h-4 w-4 bg-white rounded-full shadow transform transition-transform duration-300 ${settings.notifications ? 'translate-x-6' : ''}`}></span>
+                </button>
+              </div>
+              <div className="flex justify-end pt-4">
+                <Button type="submit">Save Changes</Button>
+              </div>
+            </form>
+            <style>{`
+              .animate-fade-in { animation: fadeIn 0.5s; }
+              @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+            `}</style>
           </div>
         );
       default:
@@ -156,6 +210,15 @@ function App() {
         );
     }
   };
+
+  useEffect(() => {
+    localStorage.setItem('settings', JSON.stringify(settings));
+    if (settings.darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [settings]);
 
   useEffect(() => {
     // Show toasts for upcoming deadlines (tasks due in next 3 days)
@@ -179,7 +242,7 @@ function App() {
   }, [tasks]);
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-950 dark:text-gray-100">
       <Sidebar
         activeView={activeView}
         onViewChange={setActiveView}

@@ -80,8 +80,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="lg:col-span-2">
           <Card>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Project Progress</h3>
-              <TrendingUp className="h-5 w-5 text-gray-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Project Progress</h3>
+              <TrendingUp className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             </div>
             <div className="space-y-4">
               {activeProjects.slice(0, 3).map((project) => (
@@ -92,11 +92,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         className="w-3 h-3 rounded-full" 
                         style={{ backgroundColor: project.color }}
                       />
-                      <span className="font-medium text-gray-900">{project.name}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{project.name}</span>
                     </div>
-                    <span className="text-sm text-gray-600">{project.progress}%</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">{project.progress}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 group relative overflow-visible">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 group relative overflow-visible">
                     <div 
                       className="h-full rounded-full transition-all duration-700 ease-out group-hover:scale-y-125 group-hover:shadow-lg"
                       style={{ 
@@ -105,7 +105,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       }}
                       title={`Progress: ${project.progress}%`}
                     />
-                    <span className="absolute left-1/2 -translate-x-1/2 -top-7 text-xs bg-gray-900 text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none transition-transform duration-300 group-hover:-translate-y-2">
+                    <span className="absolute left-1/2 -translate-x-1/2 -top-7 text-xs bg-gray-900 dark:bg-gray-700 text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none transition-transform duration-300 group-hover:-translate-y-2">
                       {project.progress}%
                     </span>
                   </div>
@@ -117,8 +117,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         <Card>
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Team Activity</h3>
-            <Users className="h-5 w-5 text-gray-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Team Activity</h3>
+            <Users className="h-5 w-5 text-gray-400 dark:text-gray-500" />
           </div>
           <div className="space-y-4">
             {mockUsers.slice(0, 4).map((user) => (
@@ -131,8 +131,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     status={user.status}
                   />
                   <div>
-                    <p className="font-medium text-gray-900">{user.name}</p>
-                    <p className="text-sm text-gray-600">{user.role}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{user.name}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{user.role}</p>
                   </div>
                 </div>
                 <Badge variant={user.status === 'online' ? 'success' : 'default'}>
@@ -148,8 +148,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Projects</h3>
-            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium" onClick={onViewAllProjects}>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Projects</h3>
+            <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium" onClick={onViewAllProjects}>
               View all
             </button>
           </div>
@@ -166,8 +166,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Upcoming Deadlines</h3>
-            <Calendar className="h-5 w-5 text-gray-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Upcoming Deadlines</h3>
+            <Calendar className="h-5 w-5 text-gray-400 dark:text-gray-500" />
           </div>
           <div className="space-y-4">
             {upcomingTasks.slice(0, 4).map((task) => {

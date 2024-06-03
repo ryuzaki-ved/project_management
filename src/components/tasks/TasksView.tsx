@@ -67,22 +67,22 @@ export const TasksView: React.FC<TasksViewProps> = ({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Tasks</h2>
-          <p className="text-gray-600">Manage and track your tasks</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Tasks</h2>
+          <p className="text-gray-600 dark:text-gray-300">Manage and track your tasks</p>
         </div>
         <Button icon={Plus} onClick={onCreateTask}>
           New Task
         </Button>
       </div>
 
-      <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200">
+      <div className="flex items-center justify-between bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-gray-500" />
+            <Filter className="h-4 w-4 text-gray-500 dark:text-gray-400" />
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
-              className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
             >
               <option value="all">All Tasks</option>
               <option value="my-tasks">My Tasks</option>
@@ -90,18 +90,18 @@ export const TasksView: React.FC<TasksViewProps> = ({
               <option value="overdue">Overdue</option>
             </select>
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 dark:text-gray-300">
             {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''}
           </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+        <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
           <button
             onClick={() => setViewMode('grid')}
             className={`p-2 rounded-md transition-colors ${
               viewMode === 'grid'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-gray-900 text-blue-600 shadow-sm'
+                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
             <Grid className="h-4 w-4" />
@@ -110,8 +110,8 @@ export const TasksView: React.FC<TasksViewProps> = ({
             onClick={() => setViewMode('list')}
             className={`p-2 rounded-md transition-colors ${
               viewMode === 'list'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-gray-900 text-blue-600 shadow-sm'
+                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
             <List className="h-4 w-4" />
@@ -120,8 +120,8 @@ export const TasksView: React.FC<TasksViewProps> = ({
             onClick={() => setViewMode('kanban')}
             className={`p-2 rounded-md transition-colors ${
               viewMode === 'kanban'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-gray-900 text-blue-600 shadow-sm'
+                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
             <Calendar className="h-4 w-4" />
@@ -156,11 +156,11 @@ export const TasksView: React.FC<TasksViewProps> = ({
 
       {filteredTasks.length === 0 && (
         <div className="text-center py-12">
-          <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Calendar className="h-10 w-10 text-gray-400" />
+          <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Calendar className="h-10 w-10 text-gray-400 dark:text-gray-500" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
-          <p className="text-gray-600 mb-4">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No tasks found</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
             {filter === 'all' 
               ? "Get started by creating your first task"
               : `No ${filter.replace('-', ' ')} tasks at the moment`

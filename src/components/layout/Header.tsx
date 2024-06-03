@@ -22,11 +22,11 @@ export const Header: React.FC<HeaderProps> = ({
   const currentUser = mockUsers[0];
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
+    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Good morning, Sarah!</h2>
-          <p className="text-gray-600">Let's make today productive</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Good morning, Sarah!</h2>
+          <p className="text-gray-600 dark:text-gray-300">Let's make today productive</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -51,12 +51,12 @@ export const Header: React.FC<HeaderProps> = ({
           </Button>
 
           <div className="flex items-center gap-3">
-            <button className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+            <button className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
               <MessageSquare className="h-5 w-5" />
             </button>
             
             <button
-              className="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 focus:outline-none active:scale-95"
+              className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition-all duration-200 focus:outline-none active:scale-95"
               onClick={onNotificationsClick}
               aria-label="Open notifications"
             >

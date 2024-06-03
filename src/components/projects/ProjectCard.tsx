@@ -39,11 +39,11 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
                 className="w-3 h-3 rounded-full transition-transform duration-300 group-hover:scale-125 group-hover:animate-pulse"
                 style={{ backgroundColor: project.color }}
               />
-              <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+              <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
                 {project.name}
               </h3>
             </div>
-            <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+            <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-3">
               {project.description}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -55,18 +55,18 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
               </Badge>
             </div>
           </div>
-          <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded group-hover:rotate-90 transition-transform duration-300">
-            <MoreHorizontal className="h-4 w-4 text-gray-500" />
+          <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded group-hover:rotate-90 transition-transform duration-300">
+            <MoreHorizontal className="h-4 w-4 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 
         <div className="space-y-3">
           <div>
-            <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
+            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 mb-1">
               <span>Progress</span>
               <span>{project.progress}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden group relative">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden group relative">
               <div 
                 className="h-full rounded-full transition-all duration-700 ease-out"
                 style={{ 
@@ -75,13 +75,13 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
                 }}
                 title={`Progress: ${project.progress}%`}
               />
-              <span className="absolute left-1/2 -translate-x-1/2 -top-7 text-xs bg-gray-900 text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none transition-transform duration-300 group-hover:-translate-y-2">
+              <span className="absolute left-1/2 -translate-x-1/2 -top-7 text-xs bg-gray-900 dark:bg-gray-700 text-white px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none transition-transform duration-300 group-hover:-translate-y-2">
                 {project.progress}%
               </span>
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-sm text-gray-600">
+          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
             <div className="flex items-center gap-1">
               <Target className="h-4 w-4" />
               <span>{project.completedTasks}/{project.tasksCount} tasks</span>
@@ -108,7 +108,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
                 />
               ))}
               {project.team.length > 3 && (
-                <div className="h-8 w-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs font-medium text-gray-600 transition-transform duration-300 group-hover:scale-110">
+                <div className="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-800 border-2 border-white flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300 transition-transform duration-300 group-hover:scale-110">
                   +{project.team.length - 3}
                 </div>
               )}
