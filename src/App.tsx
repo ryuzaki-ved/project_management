@@ -122,13 +122,13 @@ function App() {
       case 'calendar':
         const deadlineDates = getAllDeadlineDates();
         return (
-          <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="space-y-10 animate-fade-in max-w-5xl mx-auto px-4 md:px-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 mb-2">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><CalendarIcon className="inline-block h-6 w-6 text-blue-500" /> Calendar</h2>
-                <p className="text-gray-600 dark:text-gray-300">View all your project and task deadlines in one place.</p>
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-2"><CalendarIcon className="inline-block h-8 w-8 text-blue-500 animate-pop" /> Calendar</h2>
+                <p className="text-lg text-gray-600 dark:text-gray-300">View all your project and task deadlines in one place.</p>
               </div>
-              <div className="flex flex-wrap gap-2 items-center">
+              <div className="flex flex-wrap gap-4 items-center bg-white dark:bg-gray-900 rounded-xl p-4 shadow border border-gray-200 dark:border-gray-800">
                 <div className="flex items-center gap-1">
                   <FolderIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                   <select value={calendarFilter.project} onChange={e => setCalendarFilter(f => ({ ...f, project: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded px-2 py-1 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -157,15 +157,16 @@ function App() {
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-8 border border-gray-200 dark:border-gray-800 flex flex-col items-center relative">
+            <div className="relative rounded-3xl p-12 border border-gray-200 dark:border-gray-800 flex flex-col items-center overflow-hidden calendar-bg-gradient shadow-xl min-h-[600px]">
+              <div className="absolute inset-0 pointer-events-none z-0 bg-gradient-to-br from-blue-100/60 via-purple-100/40 to-pink-100/30 dark:from-blue-900/40 dark:via-purple-900/30 dark:to-pink-900/20 animate-gradient-move" />
               <button
-                className="absolute top-4 right-4 flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded shadow transition-all"
+                className="absolute top-8 right-8 flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg transition-all animate-bounce hover:scale-105 focus:outline-none z-10 text-base font-semibold"
                 onClick={() => { setShowCalendarCreate(true); setCalendarCreateType('task'); setCalendarCreateDate(null); }}
               >
-                <Plus className="h-4 w-4" /> Add Task/Project
+                <Plus className="h-5 w-5 animate-pop" /> Add Task/Project
               </button>
               <Calendar
-                className="border-none shadow-none w-full max-w-lg rounded-xl calendar-animate bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                className="border-none shadow-none w-full max-w-3xl rounded-2xl calendar-animate bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 animate-fade-in"
                 prev2Label={null}
                 next2Label={null}
                 value={calendarDate}
@@ -181,13 +182,13 @@ function App() {
                   const dateStr = date.toISOString().slice(0, 10);
                   const isToday = new Date().toISOString().slice(0, 10) === dateStr;
                   const { tasks, projects } = getDeadlinesForDate(date);
-                  if (tasks.length === 0 && projects.length === 0) return isToday ? <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mx-auto mt-1 animate-pulse" /> : null;
+                  if (tasks.length === 0 && projects.length === 0) return isToday ? <div className="w-3 h-3 rounded-full bg-blue-500 mx-auto mt-2 animate-glow" /> : null;
                   // Show colored dots for tasks/projects
                   return (
-                    <div className="flex justify-center gap-0.5 mt-1">
-                      {tasks.length > 0 && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" title={`${tasks.length} task(s)`} />}
-                      {projects.length > 0 && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" title={`${projects.length} project(s)`} />}
-                      {isToday && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" title="Today" />}
+                    <div className="flex justify-center gap-1 mt-2">
+                      {tasks.length > 0 && <span className="w-3 h-3 rounded-full bg-yellow-400 animate-pulse-slow shadow-lg shadow-yellow-200 dark:shadow-yellow-900" title={`${tasks.length} task(s)`} />}
+                      {projects.length > 0 && <span className="w-3 h-3 rounded-full bg-green-400 animate-bounce shadow-lg shadow-green-200 dark:shadow-green-900" title={`${projects.length} project(s)`} />}
+                      {isToday && <span className="w-3 h-3 rounded-full bg-blue-500 animate-glow" title="Today" />}
                     </div>
                   );
                 }}
@@ -201,26 +202,66 @@ function App() {
                     return due >= now && due <= new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000) && t.status !== 'completed';
                   });
                   const isOverdue = tasks.some(t => new Date(t.dueDate) < new Date() && t.status !== 'completed');
-                  if (isOverdue) return 'ring-2 ring-red-400';
-                  if (isSoon) return 'ring-2 ring-yellow-400';
-                  return '';
+                  const isToday = new Date().toISOString().slice(0, 10) === dateStr;
+                  let base = 'transition-all duration-200 text-lg font-semibold py-6';
+                  if (isOverdue) base += ' ring-2 ring-red-400 animate-shake';
+                  else if (isSoon) base += ' ring-2 ring-yellow-400 animate-pulse-fast';
+                  if (isToday) base += ' animate-glow-tile';
+                  return base;
                 }}
+                tileDisabled={({ date }) => false}
               />
               <style>{`
+                .calendar-bg-gradient { background: transparent; }
+                .animate-gradient-move {
+                  animation: gradientMove 8s ease-in-out infinite alternate;
+                }
+                @keyframes gradientMove {
+                  0% { filter: blur(0px) brightness(1); opacity: 0.7; }
+                  100% { filter: blur(4px) brightness(1.1); opacity: 1; }
+                }
+                .animate-fade-in { animation: fadeIn 0.7s; }
+                @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+                .animate-pop { animation: pop 0.4s cubic-bezier(.36,1.56,.64,1) both; }
+                @keyframes pop { 0% { transform: scale(0.7); } 80% { transform: scale(1.15); } 100% { transform: scale(1); } }
+                .animate-bounce { animation: bounce 1.2s infinite alternate; }
+                @keyframes bounce { 0% { transform: translateY(0); } 100% { transform: translateY(-6px); } }
+                .animate-pulse-slow { animation: pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+                .animate-pulse-fast { animation: pulse 0.8s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+                @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+                .animate-glow { animation: glow 1.5s infinite alternate; box-shadow: 0 0 12px 3px #3b82f6; }
+                @keyframes glow { 0% { box-shadow: 0 0 12px 3px #3b82f6; } 100% { box-shadow: 0 0 24px 6px #2563eb; } }
+                .animate-glow-tile { animation: glowTile 1.5s infinite alternate; }
+                @keyframes glowTile { 0% { box-shadow: 0 0 0 0 #3b82f6; } 100% { box-shadow: 0 0 20px 4px #2563eb; } }
                 .calendar-animate .react-calendar__tile {
-                  transition: background 0.2s, transform 0.2s;
-                  border-radius: 0.75rem;
+                  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+                  border-radius: 1.25rem;
+                  position: relative;
+                  min-height: 64px;
+                  margin: 6px;
+                  font-size: 1.15rem;
+                  padding: 0.5rem 0.25rem;
+                }
+                .calendar-animate .react-calendar__month-view {
+                  gap: 1.5rem;
                 }
                 .calendar-animate .react-calendar__tile--active {
                   background: #3b82f6 !important;
                   color: #fff;
-                  border-radius: 0.75rem;
+                  border-radius: 1.25rem;
+                  transform: scale(1.10);
+                  box-shadow: 0 4px 32px 0 #3b82f6cc;
+                  z-index: 2;
                 }
                 .calendar-animate .react-calendar__tile:enabled:hover, .calendar-animate .react-calendar__tile:enabled:focus {
                   background: #dbeafe;
                   color: #1e40af;
-                  transform: scale(1.05);
+                  transform: scale(1.08);
+                  box-shadow: 0 2px 16px 0 #60a5fa55;
+                  z-index: 1;
                 }
+                .dark .calendar-bg-gradient { background: transparent; }
+                .dark .animate-gradient-move { }
                 .dark .calendar-animate .react-calendar__tile {
                   background: #18181b;
                   color: #e5e7eb;
@@ -228,10 +269,12 @@ function App() {
                 .dark .calendar-animate .react-calendar__tile--active {
                   background: #2563eb !important;
                   color: #fff;
+                  box-shadow: 0 4px 32px 0 #2563ebcc;
                 }
                 .dark .calendar-animate .react-calendar__tile:enabled:hover, .dark .calendar-animate .react-calendar__tile:enabled:focus {
                   background: #1e293b;
                   color: #60a5fa;
+                  box-shadow: 0 2px 16px 0 #60a5fa55;
                 }
               `}</style>
             </div>
