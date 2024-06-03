@@ -14,6 +14,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import toast, { Toaster } from 'react-hot-toast';
 import { Task, Project } from './types';
+import Select from 'react-select';
 
 function App() {
   const [activeView, setActiveView] = useLocalStorage('activeView', 'dashboard');
@@ -42,10 +43,11 @@ function App() {
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
   const [calendarModalTasks, setCalendarModalTasks] = useState<Task[]>([]);
   const [calendarModalProjects, setCalendarModalProjects] = useState<Project[]>([]);
-  const [calendarFilter, setCalendarFilter] = useState({ project: 'all', user: 'all', status: 'all' });
+  const [calendarFilter, setCalendarFilter] = useState({ project: [] as string[], user: [] as string[], status: [] as string[] });
   const [showCalendarCreate, setShowCalendarCreate] = useState(false);
   const [calendarCreateType, setCalendarCreateType] = useState<'task' | 'project'>('task');
   const [calendarCreateDate, setCalendarCreateDate] = useState<string | null>(null);
+  const [calendarFadeKey, setCalendarFadeKey] = useState(0);
 
   const handleProjectClick = (projectId: string) => {
     setSelectedProject(projectId);
@@ -121,39 +123,88 @@ function App() {
         );
       case 'calendar':
         const deadlineDates = getAllDeadlineDates();
+        // react-select options
+        const projectOptions = projects.map(p => ({ value: p.id, label: p.name }));
+        const userOptions = mockUsers.map(u => ({ value: u.id, label: u.name }));
+        const statusOptions = [
+          { value: 'todo', label: 'To Do' },
+          { value: 'in-progress', label: 'In Progress' },
+          { value: 'review', label: 'Review' },
+          { value: 'completed', label: 'Completed' },
+          { value: 'active', label: 'Active' },
+          { value: 'on-hold', label: 'On Hold' },
+        ];
+        // react-select theme for dark mode
+        const selectTheme = (theme: any) => ({
+          ...theme,
+          borderRadius: 8,
+          colors: {
+            ...theme.colors,
+            primary25: '#dbeafe',
+            primary: '#3b82f6',
+            neutral0: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff',
+            neutral80: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#1e293b',
+            neutral20: document.documentElement.classList.contains('dark') ? '#374151' : '#d1d5db',
+            neutral30: document.documentElement.classList.contains('dark') ? '#4b5563' : '#9ca3af',
+          },
+        });
+        // react-select styles for spacing
+        const selectStyles = {
+          control: (base: any) => ({ ...base, minHeight: 44, boxShadow: 'none', borderColor: '#d1d5db', background: document.documentElement.classList.contains('dark') ? '#18181b' : '#fff' }),
+          menu: (base: any) => ({ ...base, zIndex: 100 }),
+          multiValue: (base: any) => ({ ...base, background: '#3b82f6', color: '#fff', borderRadius: 6, padding: '0 4px' }),
+          multiValueLabel: (base: any) => ({ ...base, color: '#fff', fontWeight: 500 }),
+          multiValueRemove: (base: any) => ({ ...base, color: '#fff', ':hover': { background: '#2563eb', color: '#fff' } }),
+        };
         return (
-          <div className="space-y-10 animate-fade-in max-w-5xl mx-auto px-4 md:px-8">
+          <div key={calendarFadeKey} className="space-y-10 animate-fade-in max-w-5xl mx-auto px-4 md:px-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 mb-2">
               <div>
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-2"><CalendarIcon className="inline-block h-8 w-8 text-blue-500 animate-pop" /> Calendar</h2>
                 <p className="text-lg text-gray-600 dark:text-gray-300">View all your project and task deadlines in one place.</p>
               </div>
               <div className="flex flex-wrap gap-4 items-center bg-white dark:bg-gray-900 rounded-xl p-4 shadow border border-gray-200 dark:border-gray-800">
-                <div className="flex items-center gap-1">
+                {/* Advanced MultiSelect Project Filter */}
+                <div className="flex items-center gap-2 min-w-[180px]">
                   <FolderIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <select value={calendarFilter.project} onChange={e => setCalendarFilter(f => ({ ...f, project: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded px-2 py-1 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-                    <option value="all">All Projects</option>
-                    {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
+                  <Select
+                    isMulti
+                    options={projectOptions}
+                    value={projectOptions.filter(o => calendarFilter.project.includes(o.value))}
+                    onChange={opts => setCalendarFilter(f => ({ ...f, project: (opts as any[]).map(o => o.value) }))}
+                    placeholder="Projects..."
+                    classNamePrefix="react-select"
+                    theme={selectTheme}
+                    styles={selectStyles}
+                  />
                 </div>
-                <div className="flex items-center gap-1">
+                {/* Advanced MultiSelect User Filter */}
+                <div className="flex items-center gap-2 min-w-[180px]">
                   <UserIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <select value={calendarFilter.user} onChange={e => setCalendarFilter(f => ({ ...f, user: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded px-2 py-1 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-                    <option value="all">All Users</option>
-                    {mockUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-                  </select>
+                  <Select
+                    isMulti
+                    options={userOptions}
+                    value={userOptions.filter(o => calendarFilter.user.includes(o.value))}
+                    onChange={opts => setCalendarFilter(f => ({ ...f, user: (opts as any[]).map(o => o.value) }))}
+                    placeholder="Users..."
+                    classNamePrefix="react-select"
+                    theme={selectTheme}
+                    styles={selectStyles}
+                  />
                 </div>
-                <div className="flex items-center gap-1">
+                {/* Advanced MultiSelect Status Filter */}
+                <div className="flex items-center gap-2 min-w-[180px]">
                   <StatusIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <select value={calendarFilter.status} onChange={e => setCalendarFilter(f => ({ ...f, status: e.target.value }))} className="border border-gray-300 dark:border-gray-700 rounded px-2 py-1 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-                    <option value="all">All Statuses</option>
-                    <option value="todo">To Do</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="review">Review</option>
-                    <option value="completed">Completed</option>
-                    <option value="active">Active</option>
-                    <option value="on-hold">On Hold</option>
-                  </select>
+                  <Select
+                    isMulti
+                    options={statusOptions}
+                    value={statusOptions.filter(o => calendarFilter.status.includes(o.value))}
+                    onChange={opts => setCalendarFilter(f => ({ ...f, status: (opts as any[]).map(o => o.value) }))}
+                    placeholder="Status..."
+                    classNamePrefix="react-select"
+                    theme={selectTheme}
+                    styles={selectStyles}
+                  />
                 </div>
               </div>
             </div>
@@ -524,22 +575,28 @@ function App() {
     });
   }, [tasks]);
 
+  useEffect(() => {
+    // When filters change, close modals and trigger fade-in (do not reset selected date)
+    setCalendarModalOpen(false);
+    setCalendarFadeKey(k => k + 1);
+  }, [calendarFilter]);
+
   // Helper: get all deadlines for a date (filtered)
   const getDeadlinesForDate = (date: Date) => {
     const dateStr = date.toISOString().slice(0, 10);
     let filteredTasks = tasks.filter(t => t.dueDate === dateStr);
     let filteredProjects = projects.filter(p => p.endDate === dateStr);
-    if (calendarFilter.project !== 'all') {
-      filteredTasks = filteredTasks.filter(t => t.projectId === calendarFilter.project);
-      filteredProjects = filteredProjects.filter(p => p.id === calendarFilter.project);
+    if (calendarFilter.project.length > 0) {
+      filteredTasks = filteredTasks.filter(t => calendarFilter.project.includes(t.projectId));
+      filteredProjects = filteredProjects.filter(p => calendarFilter.project.includes(p.id));
     }
-    if (calendarFilter.user !== 'all') {
-      filteredTasks = filteredTasks.filter(t => t.assignee.id === calendarFilter.user);
-      filteredProjects = filteredProjects.filter(p => p.team.some(u => u.id === calendarFilter.user));
+    if (calendarFilter.user.length > 0) {
+      filteredTasks = filteredTasks.filter(t => calendarFilter.user.includes(t.assignee.id));
+      filteredProjects = filteredProjects.filter(p => p.team.some(u => calendarFilter.user.includes(u.id)));
     }
-    if (calendarFilter.status !== 'all') {
-      filteredTasks = filteredTasks.filter(t => t.status === calendarFilter.status);
-      filteredProjects = filteredProjects.filter(p => p.status === calendarFilter.status);
+    if (calendarFilter.status.length > 0) {
+      filteredTasks = filteredTasks.filter(t => calendarFilter.status.includes(t.status));
+      filteredProjects = filteredProjects.filter(p => calendarFilter.status.includes(p.status));
     }
     return { tasks: filteredTasks, projects: filteredProjects };
   };
@@ -549,18 +606,18 @@ function App() {
     let allDates = new Set();
     tasks.forEach(t => {
       if (
-        (calendarFilter.project === 'all' || t.projectId === calendarFilter.project) &&
-        (calendarFilter.user === 'all' || t.assignee.id === calendarFilter.user) &&
-        (calendarFilter.status === 'all' || t.status === calendarFilter.status)
+        (calendarFilter.project.length === 0 || calendarFilter.project.includes(t.projectId)) &&
+        (calendarFilter.user.length === 0 || calendarFilter.user.includes(t.assignee.id)) &&
+        (calendarFilter.status.length === 0 || calendarFilter.status.includes(t.status))
       ) {
         allDates.add(t.dueDate);
       }
     });
     projects.forEach(p => {
       if (
-        (calendarFilter.project === 'all' || p.id === calendarFilter.project) &&
-        (calendarFilter.user === 'all' || p.team.some(u => u.id === calendarFilter.user)) &&
-        (calendarFilter.status === 'all' || p.status === calendarFilter.status)
+        (calendarFilter.project.length === 0 || calendarFilter.project.includes(p.id)) &&
+        (calendarFilter.user.length === 0 || p.team.some(u => calendarFilter.user.includes(u.id))) &&
+        (calendarFilter.status.length === 0 || calendarFilter.status.includes(p.status))
       ) {
         allDates.add(p.endDate);
       }
