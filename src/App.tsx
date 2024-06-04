@@ -36,7 +36,18 @@ function App() {
     return saved ? JSON.parse(saved) : { darkMode: false, notifications: true };
   });
 
-  const unreadNotifications = mockNotifications.filter(n => !n.read).length;
+  // Notifications state
+  const [notifications, setNotifications] = useState(mockNotifications);
+  const audioRef = React.useRef<HTMLAudioElement>(null);
+
+  const playNotifSound = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+    }
+  };
+
+  const unreadNotifications = notifications.filter(n => !n.read).length;
 
   // Calendar state
   const [calendarDate, setCalendarDate] = useState(new Date());
@@ -90,18 +101,19 @@ function App() {
       case 'notifications':
         return (
           <div className="space-y-6">
+            <audio ref={audioRef} src="https://cdn.pixabay.com/audio/2022/07/26/audio_124bfae1c3.mp3" preload="auto" />
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
               <p className="text-gray-600">Stay updated with your team and projects</p>
             </div>
             <div className="space-y-4">
-              {mockNotifications.map((notification) => (
+              {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 rounded-xl border transition-all duration-200 hover:shadow-md ${
+                  className={`p-4 rounded-xl border transition-all duration-200 hover:shadow-md relative ${
                     notification.read
                       ? 'bg-white border-gray-200'
-                      : 'bg-blue-50 border-blue-200'
+                      : 'bg-blue-50 border-blue-200 animate-float'
                   }`}
                 >
                   <div className="flex justify-between items-start">
@@ -112,13 +124,39 @@ function App() {
                         {new Date(notification.timestamp).toLocaleString()}
                       </p>
                     </div>
-                    {!notification.read && (
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2" />
-                    )}
+                    <div className="flex flex-col items-end gap-2">
+                      {!notification.read && (
+                        <>
+                          <div className="w-2 h-2 bg-blue-600 rounded-full mt-2" />
+                          <Button size="sm" variant="secondary" onClick={() => {
+                            setNotifications(ns => ns.map(n => n.id === notification.id ? { ...n, read: true } : n));
+                            playNotifSound();
+                          }}>
+                            Mark as Read
+                          </Button>
+                        </>
+                      )}
+                      {notification.read && (
+                        <Button size="sm" variant="ghost" onClick={() => {
+                          setNotifications(ns => ns.map(n => n.id === notification.id ? { ...n, read: false } : n));
+                          playNotifSound();
+                        }}>
+                          Mark as Unread
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
+            <style>{`
+              @keyframes float {
+                0% { transform: translateY(0); }
+                50% { transform: translateY(-8px); }
+                100% { transform: translateY(0); }
+              }
+              .animate-float { animation: float 2.2s ease-in-out infinite; }
+            `}</style>
           </div>
         );
       case 'calendar':
