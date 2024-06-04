@@ -9,12 +9,14 @@ import { Modal } from './components/ui/Modal';
 import { Button } from './components/ui/Button';
 import { mockNotifications, mockProjects as initialMockProjects, mockTasks as initialMockTasks, mockUsers } from './data/mockData';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { Calendar as CalendarIcon, Settings as SettingsIcon, Plus, Filter as FilterIcon, User as UserIcon, FolderKanban as FolderIcon, ListChecks as StatusIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Settings as SettingsIcon, Plus, Filter as FilterIcon, User as UserIcon, FolderKanban as FolderIcon, ListChecks as StatusIcon, BarChart2, PieChart, FileDown, ListChecks } from 'lucide-react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import toast, { Toaster } from 'react-hot-toast';
 import { Task, Project } from './types';
 import Select from 'react-select';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 function App() {
   const [activeView, setActiveView] = useLocalStorage('activeView', 'dashboard');
@@ -525,15 +527,244 @@ function App() {
           </div>
         );
       case 'reports':
+        // Mock stats
+        const totalProjects = projects.length;
+        const completedProjects = projects.filter(p => p.status === 'completed').length;
+        const activeProjects = projects.filter(p => p.status === 'active').length;
+        const onHoldProjects = projects.filter(p => p.status === 'on-hold').length;
+        const archivedProjects = projects.filter(p => p.status === 'archived').length;
+        const totalTasks = tasks.length;
+        const completedTasks = tasks.filter(t => t.status === 'completed').length;
+        const overdueTasks = tasks.filter(t => new Date(t.dueDate) < new Date() && t.status !== 'completed').length;
+        const inProgressTasks = tasks.filter(t => t.status === 'in-progress').length;
+        const todoTasks = tasks.filter(t => t.status === 'todo').length;
+        const reviewTasks = tasks.filter(t => t.status === 'review').length;
+        // Trends (mocked)
+        const projectGrowth = '+3 this month';
+        const taskCompletionRate = ((completedTasks / totalTasks) * 100 || 0).toFixed(1) + '%';
+        // Mock chart data
+        const barData = [
+          { label: 'Completed', value: completedTasks },
+          { label: 'In Progress', value: inProgressTasks },
+          { label: 'To Do', value: todoTasks },
+          { label: 'Review', value: reviewTasks },
+          { label: 'Overdue', value: overdueTasks },
+        ];
+        const pieData = [
+          { label: 'Completed', value: completedProjects },
+          { label: 'Active', value: activeProjects },
+          { label: 'On Hold', value: onHoldProjects },
+          { label: 'Archived', value: archivedProjects },
+        ];
+        // Animated counter helper
+        interface AnimatedCounterProps {
+          value: number;
+          duration?: number;
+          className?: string;
+        }
+        const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ value, duration = 1200, className = '' }) => {
+          const [count, setCount] = React.useState(0);
+          React.useEffect(() => {
+            let start = 0;
+            const step = Math.ceil(value / (duration / 16));
+            const interval = setInterval(() => {
+              start += step;
+              if (start >= value) {
+                setCount(value);
+                clearInterval(interval);
+              } else {
+                setCount(start);
+              }
+            }, 16);
+            return () => clearInterval(interval);
+          }, [value, duration]);
+          return <span className={className}>{count}</span>;
+        };
+        // PDF Export logic
+        // @ts-ignore
+        const handleExportPDF = () => {
+          const doc = new jsPDF();
+          doc.setFontSize(18);
+          doc.text('Project Management Report', 14, 18);
+          doc.setFontSize(12);
+          doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 26);
+          doc.text('Summary', 14, 36);
+          // @ts-ignore
+          doc.autoTable({
+            startY: 40,
+            head: [['Metric', 'Value']],
+            body: [
+              ['Total Projects', totalProjects],
+              ['Completed Projects', completedProjects],
+              ['Active Projects', activeProjects],
+              ['On Hold Projects', onHoldProjects],
+              ['Archived Projects', archivedProjects],
+              ['Total Tasks', totalTasks],
+              ['Completed Tasks', completedTasks],
+              ['In Progress Tasks', inProgressTasks],
+              ['To Do Tasks', todoTasks],
+              ['Review Tasks', reviewTasks],
+              ['Overdue Tasks', overdueTasks],
+              ['Task Completion Rate', taskCompletionRate],
+            ],
+            theme: 'striped',
+            headStyles: { fillColor: [59, 130, 246] },
+            styles: { fontSize: 10 },
+          });
+          // @ts-ignore
+          const lastY1 = doc.lastAutoTable ? doc.lastAutoTable.finalY : 60;
+          doc.text('Project Breakdown', 14, lastY1 + 10);
+          // @ts-ignore
+          doc.autoTable({
+            startY: lastY1 + 14,
+            head: [['Name', 'Status', 'Progress', 'End Date', 'Team']],
+            body: projects.map(p => [p.name, p.status, `${p.progress}%`, p.endDate, p.team.map(u => u.name).join(', ')]),
+            styles: { fontSize: 9 },
+            headStyles: { fillColor: [16, 185, 129] },
+          });
+          // @ts-ignore
+          const lastY2 = doc.lastAutoTable ? doc.lastAutoTable.finalY : lastY1 + 34;
+          doc.text('Task Breakdown', 14, lastY2 + 10);
+          // @ts-ignore
+          doc.autoTable({
+            startY: lastY2 + 14,
+            head: [['Title', 'Status', 'Priority', 'Due Date', 'Assigned']],
+            body: tasks.map(t => [t.title, t.status, t.priority, t.dueDate, t.assignee ? t.assignee.name : 'Unassigned']),
+            styles: { fontSize: 9 },
+            headStyles: { fillColor: [239, 68, 68] },
+          });
+          doc.save('project_report.pdf');
+        };
         return (
-          <div className="space-y-6">
+          <div className="space-y-10 max-w-5xl mx-auto animate-fade-in">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Reports & Analytics</h2>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-2 animate-pop"><BarChart2 className="h-7 w-7 text-blue-500 animate-bounce" /> Reports & Analytics</h2>
               <p className="text-gray-600 dark:text-gray-300">Analyze your productivity and export project data.</p>
             </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-8 border border-gray-200 dark:border-gray-800 text-center text-gray-400 dark:text-gray-500">
-              <p className="text-lg">(Reports and analytics coming soon!)</p>
+            {/* Animated Summary Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-6 flex flex-col items-center animate-fade-in-up">
+                <span className="text-2xl font-bold text-blue-600"><AnimatedCounter value={totalProjects} /></span>
+                <span className="text-gray-700 dark:text-gray-200 mt-1">Total Projects</span>
+                <span className="text-xs text-green-500 mt-2 animate-pulse">{projectGrowth}</span>
+              </div>
+              <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-6 flex flex-col items-center animate-fade-in-up delay-100">
+                <span className="text-2xl font-bold text-green-600"><AnimatedCounter value={completedTasks} /></span>
+                <span className="text-gray-700 dark:text-gray-200 mt-1">Completed Tasks</span>
+                <span className="text-xs text-blue-500 mt-2 animate-pulse">{taskCompletionRate} done</span>
+              </div>
+              <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-6 flex flex-col items-center animate-fade-in-up delay-200">
+                <span className="text-2xl font-bold text-yellow-600"><AnimatedCounter value={inProgressTasks} /></span>
+                <span className="text-gray-700 dark:text-gray-200 mt-1">In Progress</span>
+              </div>
+              <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-6 flex flex-col items-center animate-fade-in-up delay-300">
+                <span className="text-2xl font-bold text-red-600"><AnimatedCounter value={overdueTasks} /></span>
+                <span className="text-gray-700 dark:text-gray-200 mt-1">Overdue Tasks</span>
+              </div>
             </div>
+            {/* Analytics Breakdown */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Bar Chart */}
+              <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-6 animate-fade-in-up">
+                <div className="flex items-center gap-2 mb-4"><BarChart2 className="h-5 w-5 text-blue-500 animate-bounce" /><span className="font-semibold text-gray-900 dark:text-white">Task Status Breakdown</span></div>
+                <div className="flex items-end gap-6 h-44 justify-center">
+                  {barData.map((d, i) => (
+                    <div key={d.label} className="flex flex-col items-center group">
+                      <div className={`w-10 rounded-t-lg transition-all duration-700 ${i === 0 ? 'bg-green-400' : i === 1 ? 'bg-blue-400' : i === 2 ? 'bg-yellow-400' : i === 3 ? 'bg-pink-400' : 'bg-red-400'} group-hover:scale-110 group-hover:shadow-xl animate-grow-bar`}
+                        style={{ height: `${Math.max(10, d.value * 2)}px`, animationDelay: `${i * 0.15}s` }}
+                        title={String(d.value)}
+                      />
+                      <span className="mt-2 text-sm text-gray-700 dark:text-gray-200">{d.label}</span>
+                      <span className="text-xs text-gray-500">{d.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Pie Chart (SVG) */}
+              <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-6 animate-fade-in-up delay-200">
+                <div className="flex items-center gap-2 mb-4"><PieChart className="h-5 w-5 text-pink-500 animate-bounce" /><span className="font-semibold text-gray-900 dark:text-white">Project Status Breakdown</span></div>
+                <svg viewBox="0 0 36 36" className="w-32 h-32 mx-auto animate-spin-slow">
+                  {(() => {
+                    const total = pieData.reduce((sum, d) => sum + d.value, 0);
+                    let acc = 0;
+                    return pieData.map((d, i) => {
+                      const start = acc / total * 100;
+                      acc += d.value;
+                      const end = acc / total * 100;
+                      const large = end - start > 50 ? 1 : 0;
+                      const r = 16;
+                      const x1 = 18 + r * Math.cos(2 * Math.PI * (start / 100) - Math.PI / 2);
+                      const y1 = 18 + r * Math.sin(2 * Math.PI * (start / 100) - Math.PI / 2);
+                      const x2 = 18 + r * Math.cos(2 * Math.PI * (end / 100) - Math.PI / 2);
+                      const y2 = 18 + r * Math.sin(2 * Math.PI * (end / 100) - Math.PI / 2);
+                      const color = i === 0 ? '#22c55e' : i === 1 ? '#3b82f6' : i === 2 ? '#fbbf24' : '#f472b6';
+                      return (
+                        <path
+                          key={d.label}
+                          d={`M18,18 L${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2} Z`}
+                          fill={color}
+                          opacity={d.value === 0 ? 0.15 : 0.9}
+                          className="animate-grow-pie"
+                          style={{ animationDelay: `${i * 0.2}s` }}
+                        />
+                      );
+                    });
+                  })()}
+                </svg>
+                <div className="flex justify-center gap-4 mt-4">
+                  {pieData.map((d, i) => (
+                    <div key={d.label} className="flex items-center gap-1 text-sm">
+                      <span className={`inline-block w-3 h-3 rounded-full ${i === 0 ? 'bg-green-400' : i === 1 ? 'bg-blue-400' : i === 2 ? 'bg-yellow-400' : 'bg-pink-400'}`}></span>
+                      <span className="text-gray-700 dark:text-gray-200">{d.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {/* Table Analytics */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-6 animate-fade-in-up delay-300">
+              <div className="flex items-center gap-2 mb-4"><ListChecks className="h-5 w-5 text-blue-500 animate-bounce" /><span className="font-semibold text-gray-900 dark:text-white">Recent Projects</span></div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm text-left">
+                  <thead>
+                    <tr className="bg-blue-50 dark:bg-blue-900">
+                      <th className="px-4 py-2">Name</th>
+                      <th className="px-4 py-2">Status</th>
+                      <th className="px-4 py-2">Progress</th>
+                      <th className="px-4 py-2">End Date</th>
+                      <th className="px-4 py-2">Team</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {projects.slice(0, 5).map((p, i) => (
+                      <tr key={p.id} className={`transition-all duration-300 ${i % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'} hover:bg-blue-50 dark:hover:bg-blue-900 animate-fade-in-up`} style={{ animationDelay: `${i * 0.1}s` }}>
+                        <td className="px-4 py-2 font-medium">{p.name}</td>
+                        <td className="px-4 py-2 capitalize">{p.status}</td>
+                        <td className="px-4 py-2">{p.progress}%</td>
+                        <td className="px-4 py-2">{p.endDate}</td>
+                        <td className="px-4 py-2">{p.team.map(u => u.name).join(', ')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="flex justify-end mt-8">
+              <Button icon={FileDown} variant="primary" onClick={handleExportPDF}>Export as PDF</Button>
+            </div>
+            <style>{`
+              .animate-fade-in-up { animation: fadeInUp 0.7s both; }
+              .animate-fade-in-up.delay-100 { animation-delay: 0.1s; }
+              .animate-fade-in-up.delay-200 { animation-delay: 0.2s; }
+              .animate-fade-in-up.delay-300 { animation-delay: 0.3s; }
+              @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+              .animate-grow-bar { animation: growBar 1s cubic-bezier(.36,1.56,.64,1) both; }
+              @keyframes growBar { from { height: 0; } to { } }
+              .animate-grow-pie { animation: growPie 1.2s cubic-bezier(.36,1.56,.64,1) both; }
+              @keyframes growPie { from { opacity: 0; } to { opacity: 1; } }
+              .animate-spin-slow { animation: spin 8s linear infinite; }
+              @keyframes spin { 100% { transform: rotate(360deg); } }
+            `}</style>
           </div>
         );
       case 'settings':
