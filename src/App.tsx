@@ -667,57 +667,218 @@ function App() {
               {/* Bar Chart */}
               <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-6 animate-fade-in-up">
                 <div className="flex items-center gap-2 mb-4"><BarChart2 className="h-5 w-5 text-blue-500 animate-bounce" /><span className="font-semibold text-gray-900 dark:text-white">Task Status Breakdown</span></div>
-                <div className="flex items-end gap-6 h-44 justify-center">
-                  {barData.map((d, i) => (
-                    <div key={d.label} className="flex flex-col items-center group">
-                      <div className={`w-10 rounded-t-lg transition-all duration-700 ${i === 0 ? 'bg-green-400' : i === 1 ? 'bg-blue-400' : i === 2 ? 'bg-yellow-400' : i === 3 ? 'bg-pink-400' : 'bg-red-400'} group-hover:scale-110 group-hover:shadow-xl animate-grow-bar`}
-                        style={{ height: `${Math.max(10, d.value * 2)}px`, animationDelay: `${i * 0.15}s` }}
-                        title={String(d.value)}
-                      />
-                      <span className="mt-2 text-sm text-gray-700 dark:text-gray-200">{d.label}</span>
-                      <span className="text-xs text-gray-500">{d.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* Pie Chart (SVG) */}
-              <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-6 animate-fade-in-up delay-200">
-                <div className="flex items-center gap-2 mb-4"><PieChart className="h-5 w-5 text-pink-500 animate-bounce" /><span className="font-semibold text-gray-900 dark:text-white">Project Status Breakdown</span></div>
-                <svg viewBox="0 0 36 36" className="w-32 h-32 mx-auto animate-spin-slow">
+                <div className="flex items-end gap-6 h-48 justify-center">
                   {(() => {
-                    const total = pieData.reduce((sum, d) => sum + d.value, 0);
-                    let acc = 0;
-                    return pieData.map((d, i) => {
-                      const start = acc / total * 100;
-                      acc += d.value;
-                      const end = acc / total * 100;
-                      const large = end - start > 50 ? 1 : 0;
-                      const r = 16;
-                      const x1 = 18 + r * Math.cos(2 * Math.PI * (start / 100) - Math.PI / 2);
-                      const y1 = 18 + r * Math.sin(2 * Math.PI * (start / 100) - Math.PI / 2);
-                      const x2 = 18 + r * Math.cos(2 * Math.PI * (end / 100) - Math.PI / 2);
-                      const y2 = 18 + r * Math.sin(2 * Math.PI * (end / 100) - Math.PI / 2);
-                      const color = i === 0 ? '#22c55e' : i === 1 ? '#3b82f6' : i === 2 ? '#fbbf24' : '#f472b6';
+                    const maxValue = Math.max(...barData.map(d => d.value), 1);
+                    const minBarHeight = 10;
+                    const maxBarHeight = 140;
+                    return barData.map((d, i) => {
+                      // Gradient colors for each bar
+                      const gradients = [
+                        'linear-gradient(180deg, #4ade80 0%, #22c55e 100%)', // green
+                        'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)', // blue
+                        'linear-gradient(180deg, #fde68a 0%, #fbbf24 100%)', // yellow
+                        'linear-gradient(180deg, #f9a8d4 0%, #ec4899 100%)', // pink
+                        'linear-gradient(180deg, #fca5a5 0%, #ef4444 100%)', // red
+                      ];
+                      // Height proportional to max value
+                      const height = d.value === 0 ? minBarHeight : Math.max(minBarHeight, (d.value / maxValue) * maxBarHeight);
                       return (
-                        <path
-                          key={d.label}
-                          d={`M18,18 L${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2} Z`}
-                          fill={color}
-                          opacity={d.value === 0 ? 0.15 : 0.9}
-                          className="animate-grow-pie"
-                          style={{ animationDelay: `${i * 0.2}s` }}
-                        />
+                        <div key={d.label} className="flex flex-col items-center group relative">
+                          <div
+                            className={`w-12 rounded-t-2xl transition-all duration-700 group-hover:scale-110 group-hover:shadow-2xl animate-grow-bar`}
+                            style={{
+                              height: `${height}px`,
+                              background: gradients[i],
+                              animationDelay: `${i * 0.15}s`,
+                              boxShadow: '0 4px 24px 0 rgba(59,130,246,0.08)',
+                            }}
+                            title={String(d.value)}
+                          />
+                          <span className="mt-2 text-sm text-gray-700 dark:text-gray-200">{d.label}</span>
+                          <span className="text-xs text-gray-500">{d.value}</span>
+                          {/* Tooltip */}
+                          <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-gray-900 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                            {d.label}: {d.value}
+                          </span>
+                        </div>
                       );
                     });
                   })()}
-                </svg>
-                <div className="flex justify-center gap-4 mt-4">
-                  {pieData.map((d, i) => (
-                    <div key={d.label} className="flex items-center gap-1 text-sm">
-                      <span className={`inline-block w-3 h-3 rounded-full ${i === 0 ? 'bg-green-400' : i === 1 ? 'bg-blue-400' : i === 2 ? 'bg-yellow-400' : 'bg-pink-400'}`}></span>
-                      <span className="text-gray-700 dark:text-gray-200">{d.label}</span>
-                    </div>
-                  ))}
+                </div>
+              </div>
+              {/* Circular Heatmap for Project Status */}
+              <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-6 animate-fade-in-up delay-200">
+                <div className="flex items-center gap-2 mb-4"><PieChart className="h-5 w-5 text-pink-500" /><span className="font-semibold text-gray-900 dark:text-white">Project Status Breakdown</span></div>
+                <div className="flex flex-col items-center">
+                  {(() => {
+                    const [hovered, setHovered] = React.useState<number | null>(null);
+                    const [labelPos, setLabelPos] = React.useState<{ x: number; y: number } | null>(null);
+                    const total = pieData.reduce((sum, d) => sum + d.value, 0);
+                    let acc = 0;
+                    // Gradients for each segment
+                    const gradients = [
+                      'url(#pie-green)',
+                      'url(#pie-blue)',
+                      'url(#pie-yellow)',
+                      'url(#pie-pink)',
+                    ];
+                    // SVG donut with gradients and expansion on hover
+                    return (
+                      <div className="relative flex flex-col items-center">
+                        <svg viewBox="0 0 60 60" className="w-56 h-56 drop-shadow-2xl">
+                          <defs>
+                            <radialGradient id="pie-green" cx="50%" cy="50%" r="80%">
+                              <stop offset="0%" stopColor="#bbf7d0" />
+                              <stop offset="100%" stopColor="#22c55e" />
+                            </radialGradient>
+                            <radialGradient id="pie-blue" cx="50%" cy="50%" r="80%">
+                              <stop offset="0%" stopColor="#dbeafe" />
+                              <stop offset="100%" stopColor="#2563eb" />
+                            </radialGradient>
+                            <radialGradient id="pie-yellow" cx="50%" cy="50%" r="80%">
+                              <stop offset="0%" stopColor="#fef9c3" />
+                              <stop offset="100%" stopColor="#fbbf24" />
+                            </radialGradient>
+                            <radialGradient id="pie-pink" cx="50%" cy="50%" r="80%">
+                              <stop offset="0%" stopColor="#fce7f3" />
+                              <stop offset="100%" stopColor="#ec4899" />
+                            </radialGradient>
+                          </defs>
+                          {pieData.map((d, i) => {
+                            const start = acc / total * 100;
+                            acc += d.value;
+                            const end = acc / total * 100;
+                            const large = end - start > 50 ? 1 : 0;
+                            // Donut radii
+                            const rOuter = hovered === i ? 27 : 25;
+                            const rInner = 15;
+                            // Arc math
+                            const angle = (percent: number) => 2 * Math.PI * (percent / 100) - Math.PI / 2;
+                            const x1 = 30 + rOuter * Math.cos(angle(start));
+                            const y1 = 30 + rOuter * Math.sin(angle(start));
+                            const x2 = 30 + rOuter * Math.cos(angle(end));
+                            const y2 = 30 + rOuter * Math.sin(angle(end));
+                            const x3 = 30 + rInner * Math.cos(angle(end));
+                            const y3 = 30 + rInner * Math.sin(angle(end));
+                            const x4 = 30 + rInner * Math.cos(angle(start));
+                            const y4 = 30 + rInner * Math.sin(angle(start));
+                            const path = [
+                              `M${x1},${y1}`,
+                              `A${rOuter},${rOuter} 0 ${large} 1 ${x2},${y2}`,
+                              `L${x3},${y3}`,
+                              `A${rInner},${rInner} 0 ${large} 0 ${x4},${y4}`,
+                              'Z',
+                            ].join(' ');
+                            // For label position: use the middle angle of the segment
+                            const midPercent = (start + end) / 2;
+                            const midAngle = angle(midPercent);
+                            const labelRadius = 32; // outside the donut
+                            const labelX = 30 + labelRadius * Math.cos(midAngle);
+                            const labelY = 30 + labelRadius * Math.sin(midAngle);
+                            return (
+                              <g key={d.label}>
+                                <path
+                                  d={path}
+                                  fill={gradients[i]}
+                                  style={{
+                                    filter: hovered === i ? 'brightness(1.2) drop-shadow(0 0 12px #0003)' : undefined,
+                                    transition: 'all 0.25s cubic-bezier(.36,1.56,.64,1)',
+                                    cursor: 'pointer',
+                                    opacity: hovered === null || hovered === i ? 1 : 0.5,
+                                  }}
+                                  onMouseEnter={() => {
+                                    setHovered(i);
+                                    setLabelPos({ x: labelX, y: labelY });
+                                  }}
+                                  onMouseLeave={() => {
+                                    setHovered(null);
+                                    setLabelPos(null);
+                                  }}
+                                />
+                                {/* Animated label outside the donut */}
+                                {hovered === i && labelPos && (
+                                  (() => {
+                                    // Move label further out and clamp to SVG bounds
+                                    const svgSize = 60;
+                                    const margin = 8;
+                                    const labelW = 64, labelH = 28;
+                                    let x = labelPos.x, y = labelPos.y;
+                                    // Move label further out from donut
+                                    const dx = x - 30, dy = y - 30;
+                                    const dist = Math.sqrt(dx*dx + dy*dy);
+                                    const extra = 16;
+                                    x = 30 + (dx / (dist || 1)) * (dist + extra);
+                                    y = 30 + (dy / (dist || 1)) * (dist + extra);
+                                    // Clamp to SVG bounds
+                                    x = Math.max(margin + labelW/2, Math.min(svgSize - margin - labelW/2, x));
+                                    y = Math.max(margin, Math.min(svgSize - margin - labelH, y));
+                                    return (
+                                      <foreignObject
+                                        x={x - labelW/2}
+                                        y={y - labelH/2}
+                                        width={labelW}
+                                        height={labelH}
+                                        style={{ pointerEvents: 'none' }}
+                                      >
+                                        <div className="fade-in-out rounded-md px-2 py-1 shadow-lg bg-white/95 dark:bg-gray-900/95 border border-blue-200 dark:border-blue-800 text-center" style={{
+                                          color: '#0ea5e9',
+                                          fontWeight: 600,
+                                          fontSize: 10,
+                                          textShadow: '0 2px 8px #0001',
+                                          transition: 'opacity 0.3s',
+                                          minWidth: 0,
+                                          minHeight: 0,
+                                          boxSizing: 'border-box',
+                                        }}>
+                                          <div className="text-gray-700 dark:text-gray-200 font-semibold text-[10px] mb-0.5">{d.label}</div>
+                                          <div className="text-xs font-bold">{d.value}</div>
+                                        </div>
+                                      </foreignObject>
+                                    );
+                                  })()
+                                )}
+                              </g>
+                            );
+                          })}
+                          {/* White donut center */}
+                          <circle cx="30" cy="30" r="13" fill="#fff" />
+                          {/* Center label only if not hovering */}
+                          {hovered === null && (
+                            <>
+                              <text x="30" y="25" textAnchor="middle" fontSize="0.58rem" fontWeight="bold" fill="#334155">
+                                Total
+                              </text>
+                              <text x="30" y="30" textAnchor="middle" fontSize="0.74rem" fontWeight="bold" fill="#0ea5e9">
+                                {total}
+                              </text>
+                            </>
+                          )}
+                        </svg>
+                        <style>{`
+                          .fade-in-out { opacity: 0; animation: fadeInOutLabel 0.4s forwards; }
+                          @keyframes fadeInOutLabel { from { opacity: 0; transform: translateY(10px) scale(0.95); } to { opacity: 1; transform: none; } }
+                        `}</style>
+                      </div>
+                    );
+                  })()}
+                  <div className="flex flex-wrap justify-center gap-4 mt-4">
+                    {pieData.map((d, i) => {
+                      const swatch = [
+                        'bg-gradient-to-br from-green-200 to-green-500',
+                        'bg-gradient-to-br from-blue-200 to-blue-600',
+                        'bg-gradient-to-br from-yellow-100 to-yellow-400',
+                        'bg-gradient-to-br from-pink-100 to-pink-500',
+                      ];
+                      return (
+                        <div key={d.label} className="flex items-center gap-2 text-sm font-semibold px-3 py-1 rounded-lg bg-gray-50 dark:bg-gray-800 shadow-sm">
+                          <span className={`inline-block w-4 h-4 rounded-full ${swatch[i]}`}></span>
+                          <span className="text-gray-700 dark:text-gray-200 font-bold">{d.label}</span>
+                          <span className="text-xs text-gray-500 ml-1 font-normal">({d.value})</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
