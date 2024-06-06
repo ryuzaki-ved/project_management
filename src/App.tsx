@@ -929,41 +929,188 @@ function App() {
           </div>
         );
       case 'settings':
+        // Settings state extensions
+        const [showChangePassword, setShowChangePassword] = useState(false);
+        const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+        const themeOptions = [
+          { value: 'light', label: 'Light' },
+          { value: 'dark', label: 'Dark' },
+          { value: 'system', label: 'System' },
+        ];
+        const languageOptions = [
+          { value: 'en', label: 'English' },
+          { value: 'es', label: 'Spanish' },
+          { value: 'fr', label: 'French' },
+          { value: 'de', label: 'German' },
+        ];
+        const fontSizeOptions = [
+          { value: 'sm', label: 'Small' },
+          { value: 'md', label: 'Medium' },
+          { value: 'lg', label: 'Large' },
+        ];
+        // Extend settings state if missing keys
+        const fullSettings = {
+          theme: settings.theme || 'light',
+          darkMode: settings.darkMode ?? false,
+          notifications: settings.notifications ?? true,
+          emailNotifications: settings.emailNotifications ?? false,
+          soundNotifications: settings.soundNotifications ?? true,
+          dailySummary: settings.dailySummary ?? false,
+          language: settings.language || 'en',
+          fontSize: settings.fontSize || 'md',
+          highContrast: settings.highContrast ?? false,
+          twoFactor: settings.twoFactor ?? false,
+        };
+        // Save settings helper
+        const saveSettings = (newSettings: any) => {
+          setSettings((s: any) => ({ ...s, ...newSettings }));
+          toast.success('Settings saved!');
+        };
         return (
-          <div className="max-w-xl mx-auto bg-white dark:bg-gray-900 rounded-xl shadow p-8 animate-fade-in">
+          <div className="max-w-xl mx-auto bg-white dark:bg-gray-900 rounded-xl shadow p-8 animate-fade-in space-y-10">
             <div className="flex items-center gap-3 mb-6">
               <SettingsIcon className="h-7 w-7 text-blue-500" />
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h2>
             </div>
-            <form className="space-y-6" onSubmit={e => { e.preventDefault(); toast.success('Settings saved!'); }}>
+            {/* Theme & Appearance */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Theme & Appearance</h3>
               <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-700 dark:text-gray-200">Dark Mode</span>
+                <span className="font-medium text-gray-700 dark:text-gray-200">Theme</span>
+                <Select
+                  options={themeOptions}
+                  value={themeOptions.find(o => o.value === fullSettings.theme)}
+                  onChange={opt => { if (opt) saveSettings({ theme: opt.value, darkMode: opt.value === 'dark' }); }}
+                  classNamePrefix="react-select"
+                  styles={{ container: base => ({ ...base, minWidth: 120 }) }}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700 dark:text-gray-200">Font Size</span>
+                <Select
+                  options={fontSizeOptions}
+                  value={fontSizeOptions.find(o => o.value === fullSettings.fontSize)}
+                  onChange={opt => { if (opt) saveSettings({ fontSize: opt.value }); }}
+                  classNamePrefix="react-select"
+                  styles={{ container: base => ({ ...base, minWidth: 120 }) }}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700 dark:text-gray-200">High Contrast</span>
                 <button
                   type="button"
-                  className={`w-12 h-6 flex items-center bg-gray-200 dark:bg-gray-700 rounded-full p-1 transition-colors duration-300 ${settings.darkMode ? 'bg-blue-600' : ''}`}
-                  onClick={() => setSettings((s: typeof settings) => ({ ...s, darkMode: !s.darkMode }))}
+                  className={`w-12 h-6 flex items-center bg-gray-200 dark:bg-gray-700 rounded-full p-1 transition-colors duration-300 ${fullSettings.highContrast ? 'bg-blue-600' : ''}`}
+                  onClick={() => saveSettings({ highContrast: !fullSettings.highContrast })}
                 >
-                  <span className={`h-4 w-4 bg-white rounded-full shadow transform transition-transform duration-300 ${settings.darkMode ? 'translate-x-6' : ''}`}></span>
+                  <span className={`h-4 w-4 bg-white rounded-full shadow transform transition-transform duration-300 ${fullSettings.highContrast ? 'translate-x-6' : ''}`}></span>
                 </button>
               </div>
+            </div>
+            {/* Notifications */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Notifications</h3>
               <div className="flex items-center justify-between">
                 <span className="font-medium text-gray-700 dark:text-gray-200">Enable Notifications</span>
                 <button
                   type="button"
-                  className={`w-12 h-6 flex items-center bg-gray-200 dark:bg-gray-700 rounded-full p-1 transition-colors duration-300 ${settings.notifications ? 'bg-blue-600' : ''}`}
-                  onClick={() => setSettings((s: typeof settings) => ({ ...s, notifications: !s.notifications }))}
+                  className={`w-12 h-6 flex items-center bg-gray-200 dark:bg-gray-700 rounded-full p-1 transition-colors duration-300 ${fullSettings.notifications ? 'bg-blue-600' : ''}`}
+                  onClick={() => saveSettings({ notifications: !fullSettings.notifications })}
                 >
-                  <span className={`h-4 w-4 bg-white rounded-full shadow transform transition-transform duration-300 ${settings.notifications ? 'translate-x-6' : ''}`}></span>
+                  <span className={`h-4 w-4 bg-white rounded-full shadow transform transition-transform duration-300 ${fullSettings.notifications ? 'translate-x-6' : ''}`}></span>
                 </button>
               </div>
-              <div className="flex justify-end pt-4">
-                <Button type="submit">Save Changes</Button>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700 dark:text-gray-200">Email Notifications</span>
+                <button
+                  type="button"
+                  className={`w-12 h-6 flex items-center bg-gray-200 dark:bg-gray-700 rounded-full p-1 transition-colors duration-300 ${fullSettings.emailNotifications ? 'bg-blue-600' : ''}`}
+                  onClick={() => saveSettings({ emailNotifications: !fullSettings.emailNotifications })}
+                >
+                  <span className={`h-4 w-4 bg-white rounded-full shadow transform transition-transform duration-300 ${fullSettings.emailNotifications ? 'translate-x-6' : ''}`}></span>
+                </button>
               </div>
-            </form>
-            <style>{`
-              .animate-fade-in { animation: fadeIn 0.5s; }
-              @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
-            `}</style>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700 dark:text-gray-200">Sound Notifications</span>
+                <button
+                  type="button"
+                  className={`w-12 h-6 flex items-center bg-gray-200 dark:bg-gray-700 rounded-full p-1 transition-colors duration-300 ${fullSettings.soundNotifications ? 'bg-blue-600' : ''}`}
+                  onClick={() => saveSettings({ soundNotifications: !fullSettings.soundNotifications })}
+                >
+                  <span className={`h-4 w-4 bg-white rounded-full shadow transform transition-transform duration-300 ${fullSettings.soundNotifications ? 'translate-x-6' : ''}`}></span>
+                </button>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700 dark:text-gray-200">Daily Summary</span>
+                <button
+                  type="button"
+                  className={`w-12 h-6 flex items-center bg-gray-200 dark:bg-gray-700 rounded-full p-1 transition-colors duration-300 ${fullSettings.dailySummary ? 'bg-blue-600' : ''}`}
+                  onClick={() => saveSettings({ dailySummary: !fullSettings.dailySummary })}
+                >
+                  <span className={`h-4 w-4 bg-white rounded-full shadow transform transition-transform duration-300 ${fullSettings.dailySummary ? 'translate-x-6' : ''}`}></span>
+                </button>
+              </div>
+            </div>
+            {/* Language */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Language</h3>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700 dark:text-gray-200">App Language</span>
+                <Select
+                  options={languageOptions}
+                  value={languageOptions.find(o => o.value === fullSettings.language)}
+                  onChange={opt => { if (opt) saveSettings({ language: opt.value }); }}
+                  classNamePrefix="react-select"
+                  styles={{ container: base => ({ ...base, minWidth: 120 }) }}
+                />
+              </div>
+            </div>
+            {/* Account & Security */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Account & Security</h3>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700 dark:text-gray-200">Two-Factor Authentication</span>
+                <button
+                  type="button"
+                  className={`w-12 h-6 flex items-center bg-gray-200 dark:bg-gray-700 rounded-full p-1 transition-colors duration-300 ${fullSettings.twoFactor ? 'bg-blue-600' : ''}`}
+                  onClick={() => saveSettings({ twoFactor: !fullSettings.twoFactor })}
+                >
+                  <span className={`h-4 w-4 bg-white rounded-full shadow transform transition-transform duration-300 ${fullSettings.twoFactor ? 'translate-x-6' : ''}`}></span>
+                </button>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="secondary" onClick={() => setShowChangePassword(true)}>Change Password</Button>
+                <Button variant="ghost" onClick={() => toast('Logged out! (mock)')}>Logout</Button>
+              </div>
+            </div>
+            {/* Data & Privacy */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Data & Privacy</h3>
+              <div className="flex gap-3">
+                <Button variant="secondary" onClick={() => toast('Download started! (mock)')}>Download My Data</Button>
+                <Button variant="danger" onClick={() => setShowDeleteAccount(true)}>Delete My Account</Button>
+              </div>
+            </div>
+            {/* Modals */}
+            <Modal isOpen={showChangePassword} onClose={() => setShowChangePassword(false)} title="Change Password" size="sm">
+              <form className="space-y-4" onSubmit={e => { e.preventDefault(); setShowChangePassword(false); toast.success('Password changed! (mock)'); }}>
+                <input type="password" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Current Password" required />
+                <input type="password" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="New Password" required />
+                <input type="password" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Confirm New Password" required />
+                <div className="flex gap-2 justify-end">
+                  <Button variant="ghost" onClick={() => setShowChangePassword(false)} type="button">Cancel</Button>
+                  <Button type="submit">Change</Button>
+                </div>
+              </form>
+            </Modal>
+            <Modal isOpen={showDeleteAccount} onClose={() => setShowDeleteAccount(false)} title="Delete Account" size="sm">
+              <div className="space-y-4">
+                <p className="text-red-600 font-semibold">Are you sure you want to delete your account? This action cannot be undone.</p>
+                <div className="flex gap-2 justify-end">
+                  <Button variant="ghost" onClick={() => setShowDeleteAccount(false)} type="button">Cancel</Button>
+                  <Button variant="danger" onClick={() => { setShowDeleteAccount(false); toast.success('Account deleted! (mock)'); }}>Delete</Button>
+                </div>
+              </div>
+            </Modal>
           </div>
         );
       default:
