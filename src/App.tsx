@@ -932,6 +932,11 @@ function App() {
         // Settings state extensions
         const [showChangePassword, setShowChangePassword] = useState(false);
         const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+        const [show2FAModal, setShow2FAModal] = useState(false);
+        const [showGoodbye, setShowGoodbye] = useState(false);
+        const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
+        const [passwordError, setPasswordError] = useState('');
+        const [languageLabel, setLanguageLabel] = useState('English');
         const themeOptions = [
           { value: 'light', label: 'Light' },
           { value: 'dark', label: 'Dark' },
@@ -961,10 +966,87 @@ function App() {
           highContrast: settings.highContrast ?? false,
           twoFactor: settings.twoFactor ?? false,
         };
+        // System theme detection
+        useEffect(() => {
+          if (fullSettings.theme === 'system') {
+            const mq = window.matchMedia('(prefers-color-scheme: dark)');
+            const applySystemTheme = () => {
+              setSettings((s: any) => ({ ...s, darkMode: mq.matches }));
+            };
+            applySystemTheme();
+            mq.addEventListener('change', applySystemTheme);
+            return () => mq.removeEventListener('change', applySystemTheme);
+          }
+        }, [fullSettings.theme, setSettings]);
+        // Font size & high contrast
+        useEffect(() => {
+          const root = document.documentElement;
+          root.classList.remove('text-sm', 'text-base', 'text-lg', 'contrast-high');
+          if (fullSettings.fontSize === 'sm') root.classList.add('text-sm');
+          else if (fullSettings.fontSize === 'md') root.classList.add('text-base');
+          else if (fullSettings.fontSize === 'lg') root.classList.add('text-lg');
+          if (fullSettings.highContrast) root.classList.add('contrast-high');
+        }, [fullSettings.fontSize, fullSettings.highContrast]);
         // Save settings helper
         const saveSettings = (newSettings: any) => {
           setSettings((s: any) => ({ ...s, ...newSettings }));
           toast.success('Settings saved!');
+        };
+        // Download data
+        const handleDownloadData = () => {
+          const data = {
+            user: currentUser,
+            projects,
+            tasks,
+            settings: fullSettings,
+          };
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'my_project_data.json';
+          a.click();
+          URL.revokeObjectURL(url);
+          toast.success('Download started!');
+        };
+        // Logout
+        const handleLogout = () => {
+          localStorage.clear();
+          window.location.reload();
+        };
+        // Delete account
+        const handleDeleteAccount = () => {
+          localStorage.clear();
+          setShowDeleteAccount(false);
+          setShowGoodbye(true);
+        };
+        // 2FA modal
+        const handle2FAToggle = () => {
+          setShow2FAModal(true);
+        };
+        // Language change
+        const handleLanguageChange = (opt: any) => {
+          if (opt) {
+            saveSettings({ language: opt.value });
+            setLanguageLabel(opt.label);
+            toast.success(`Language set to ${opt.label} (mock)`);
+          }
+        };
+        // Change password validation
+        const handlePasswordChange = (e: React.FormEvent) => {
+          e.preventDefault();
+          setPasswordError('');
+          if (!passwords.current || !passwords.new || !passwords.confirm) {
+            setPasswordError('All fields are required.');
+            return;
+          }
+          if (passwords.new !== passwords.confirm) {
+            setPasswordError('New passwords do not match.');
+            return;
+          }
+          setShowChangePassword(false);
+          setPasswords({ current: '', new: '', confirm: '' });
+          toast.success('Password changed! (mock)');
         };
         return (
           <div className="max-w-xl mx-auto bg-white dark:bg-gray-900 rounded-xl shadow p-8 animate-fade-in space-y-10">
@@ -1058,11 +1140,12 @@ function App() {
                 <Select
                   options={languageOptions}
                   value={languageOptions.find(o => o.value === fullSettings.language)}
-                  onChange={opt => { if (opt) saveSettings({ language: opt.value }); }}
+                  onChange={handleLanguageChange}
                   classNamePrefix="react-select"
                   styles={{ container: base => ({ ...base, minWidth: 120 }) }}
                 />
               </div>
+              <div className="text-xs text-blue-500 font-semibold mt-1">Current: {languageLabel}</div>
             </div>
             {/* Account & Security */}
             <div className="space-y-6">
@@ -1072,43 +1155,60 @@ function App() {
                 <button
                   type="button"
                   className={`w-12 h-6 flex items-center bg-gray-200 dark:bg-gray-700 rounded-full p-1 transition-colors duration-300 ${fullSettings.twoFactor ? 'bg-blue-600' : ''}`}
-                  onClick={() => saveSettings({ twoFactor: !fullSettings.twoFactor })}
+                  onClick={handle2FAToggle}
                 >
                   <span className={`h-4 w-4 bg-white rounded-full shadow transform transition-transform duration-300 ${fullSettings.twoFactor ? 'translate-x-6' : ''}`}></span>
                 </button>
               </div>
               <div className="flex gap-3">
                 <Button variant="secondary" onClick={() => setShowChangePassword(true)}>Change Password</Button>
-                <Button variant="ghost" onClick={() => toast('Logged out! (mock)')}>Logout</Button>
+                <Button variant="ghost" onClick={handleLogout}>Logout</Button>
               </div>
             </div>
             {/* Data & Privacy */}
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Data & Privacy</h3>
               <div className="flex gap-3">
-                <Button variant="secondary" onClick={() => toast('Download started! (mock)')}>Download My Data</Button>
+                <Button variant="secondary" onClick={handleDownloadData}>Download My Data</Button>
                 <Button variant="danger" onClick={() => setShowDeleteAccount(true)}>Delete My Account</Button>
               </div>
             </div>
             {/* Modals */}
             <Modal isOpen={showChangePassword} onClose={() => setShowChangePassword(false)} title="Change Password" size="sm">
-              <form className="space-y-4" onSubmit={e => { e.preventDefault(); setShowChangePassword(false); toast.success('Password changed! (mock)'); }}>
-                <input type="password" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Current Password" required />
-                <input type="password" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="New Password" required />
-                <input type="password" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Confirm New Password" required />
+              <form className="space-y-4" onSubmit={handlePasswordChange}>
+                <input type="password" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Current Password" required value={passwords.current} onChange={e => setPasswords(p => ({ ...p, current: e.target.value }))} />
+                <input type="password" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="New Password" required value={passwords.new} onChange={e => setPasswords(p => ({ ...p, new: e.target.value }))} />
+                <input type="password" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Confirm New Password" required value={passwords.confirm} onChange={e => setPasswords(p => ({ ...p, confirm: e.target.value }))} />
+                {passwordError && <div className="text-red-500 text-xs font-semibold">{passwordError}</div>}
                 <div className="flex gap-2 justify-end">
                   <Button variant="ghost" onClick={() => setShowChangePassword(false)} type="button">Cancel</Button>
                   <Button type="submit">Change</Button>
                 </div>
               </form>
             </Modal>
+            <Modal isOpen={show2FAModal} onClose={() => setShow2FAModal(false)} title="Two-Factor Authentication" size="sm">
+              <div className="space-y-4">
+                <p className="text-gray-700 dark:text-gray-200">Set up two-factor authentication for extra security. (Mock UI)</p>
+                <div className="flex gap-2 justify-end">
+                  <Button variant="ghost" onClick={() => setShow2FAModal(false)} type="button">Cancel</Button>
+                  <Button onClick={() => { setShow2FAModal(false); saveSettings({ twoFactor: !fullSettings.twoFactor }); toast.success(fullSettings.twoFactor ? '2FA disabled!' : '2FA enabled!'); }}> {fullSettings.twoFactor ? 'Disable' : 'Enable'} 2FA</Button>
+                </div>
+              </div>
+            </Modal>
             <Modal isOpen={showDeleteAccount} onClose={() => setShowDeleteAccount(false)} title="Delete Account" size="sm">
               <div className="space-y-4">
                 <p className="text-red-600 font-semibold">Are you sure you want to delete your account? This action cannot be undone.</p>
                 <div className="flex gap-2 justify-end">
                   <Button variant="ghost" onClick={() => setShowDeleteAccount(false)} type="button">Cancel</Button>
-                  <Button variant="danger" onClick={() => { setShowDeleteAccount(false); toast.success('Account deleted! (mock)'); }}>Delete</Button>
+                  <Button variant="danger" onClick={handleDeleteAccount}>Delete</Button>
                 </div>
+              </div>
+            </Modal>
+            <Modal isOpen={showGoodbye} onClose={() => setShowGoodbye(false)} title="Goodbye!" size="sm">
+              <div className="space-y-4 text-center">
+                <div className="text-3xl">👋</div>
+                <div className="font-semibold text-gray-700 dark:text-gray-200">Your account and data have been deleted.<br/>Thank you for using ProjectFlow.</div>
+                <Button onClick={() => { setShowGoodbye(false); window.location.reload(); }}>Close</Button>
               </div>
             </Modal>
           </div>
