@@ -18,6 +18,32 @@ import Select from 'react-select';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
+// Animated Counter Component - moved outside of renderContent
+interface AnimatedCounterProps {
+  value: number;
+  duration?: number;
+  className?: string;
+}
+
+const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ value, duration = 1200, className = '' }) => {
+  const [count, setCount] = React.useState(0);
+  React.useEffect(() => {
+    let start = 0;
+    const step = Math.ceil(value / (duration / 16));
+    const interval = setInterval(() => {
+      start += step;
+      if (start >= value) {
+        setCount(value);
+        clearInterval(interval);
+      } else {
+        setCount(start);
+      }
+    }, 16);
+    return () => clearInterval(interval);
+  }, [value, duration]);
+  return <span className={className}>{count}</span>;
+};
+
 function App() {
   const [activeView, setActiveView] = useLocalStorage('activeView', 'dashboard');
   const [showCreateTask, setShowCreateTask] = useState(false);
@@ -61,6 +87,19 @@ function App() {
   const [calendarCreateType, setCalendarCreateType] = useState<'task' | 'project'>('task');
   const [calendarCreateDate, setCalendarCreateDate] = useState<string | null>(null);
   const [calendarFadeKey, setCalendarFadeKey] = useState(0);
+
+  // Settings state - moved to top level
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [showGoodbye, setShowGoodbye] = useState(false);
+  const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
+  const [passwordError, setPasswordError] = useState('');
+  const [languageLabel, setLanguageLabel] = useState('English');
+
+  // Reports state - moved to top level to avoid hooks in renderContent
+  const [reportsPieHovered, setReportsPieHovered] = useState<number | null>(null);
+  const [reportsPieLabelPos, setReportsPieLabelPos] = useState<{ x: number; y: number } | null>(null);
 
   const handleProjectClick = (projectId: string) => {
     setSelectedProject(projectId);
@@ -556,30 +595,7 @@ function App() {
           { label: 'On Hold', value: onHoldProjects },
           { label: 'Archived', value: archivedProjects },
         ];
-        // Animated counter helper
-        interface AnimatedCounterProps {
-          value: number;
-          duration?: number;
-          className?: string;
-        }
-        const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ value, duration = 1200, className = '' }) => {
-          const [count, setCount] = React.useState(0);
-          React.useEffect(() => {
-            let start = 0;
-            const step = Math.ceil(value / (duration / 16));
-            const interval = setInterval(() => {
-              start += step;
-              if (start >= value) {
-                setCount(value);
-                clearInterval(interval);
-              } else {
-                setCount(start);
-              }
-            }, 16);
-            return () => clearInterval(interval);
-          }, [value, duration]);
-          return <span className={className}>{count}</span>;
-        };
+        
         // PDF Export logic
         // @ts-ignore
         const handleExportPDF = () => {
@@ -712,8 +728,6 @@ function App() {
                 <div className="flex items-center gap-2 mb-4"><PieChart className="h-5 w-5 text-pink-500" /><span className="font-semibold text-gray-900 dark:text-white">Project Status Breakdown</span></div>
                 <div className="flex flex-col items-center">
                   {(() => {
-                    const [hovered, setHovered] = React.useState<number | null>(null);
-                    const [labelPos, setLabelPos] = React.useState<{ x: number; y: number } | null>(null);
                     const total = pieData.reduce((sum, d) => sum + d.value, 0);
                     let acc = 0;
                     // Gradients for each segment
@@ -751,7 +765,7 @@ function App() {
                             const end = acc / total * 100;
                             const large = end - start > 50 ? 1 : 0;
                             // Donut radii
-                            const rOuter = hovered === i ? 27 : 25;
+                            const rOuter = reportsPieHovered === i ? 27 : 25;
                             const rInner = 15;
                             // Arc math
                             const angle = (percent: number) => 2 * Math.PI * (percent / 100) - Math.PI / 2;
@@ -782,28 +796,28 @@ function App() {
                                   d={path}
                                   fill={gradients[i]}
                                   style={{
-                                    filter: hovered === i ? 'brightness(1.2) drop-shadow(0 0 12px #0003)' : undefined,
+                                    filter: reportsPieHovered === i ? 'brightness(1.2) drop-shadow(0 0 12px #0003)' : undefined,
                                     transition: 'all 0.25s cubic-bezier(.36,1.56,.64,1)',
                                     cursor: 'pointer',
-                                    opacity: hovered === null || hovered === i ? 1 : 0.5,
+                                    opacity: reportsPieHovered === null || reportsPieHovered === i ? 1 : 0.5,
                                   }}
                                   onMouseEnter={() => {
-                                    setHovered(i);
-                                    setLabelPos({ x: labelX, y: labelY });
+                                    setReportsPieHovered(i);
+                                    setReportsPieLabelPos({ x: labelX, y: labelY });
                                   }}
                                   onMouseLeave={() => {
-                                    setHovered(null);
-                                    setLabelPos(null);
+                                    setReportsPieHovered(null);
+                                    setReportsPieLabelPos(null);
                                   }}
                                 />
                                 {/* Animated label outside the donut */}
-                                {hovered === i && labelPos && (
+                                {reportsPieHovered === i && reportsPieLabelPos && (
                                   (() => {
                                     // Move label further out and clamp to SVG bounds
                                     const svgSize = 60;
                                     const margin = 8;
                                     const labelW = 64, labelH = 28;
-                                    let x = labelPos.x, y = labelPos.y;
+                                    let x = reportsPieLabelPos.x, y = reportsPieLabelPos.y;
                                     // Move label further out from donut
                                     const dx = x - 30, dy = y - 30;
                                     const dist = Math.sqrt(dx*dx + dy*dy);
@@ -844,7 +858,7 @@ function App() {
                           {/* White donut center */}
                           <circle cx="30" cy="30" r="13" fill="#fff" />
                           {/* Center label only if not hovering */}
-                          {hovered === null && (
+                          {reportsPieHovered === null && (
                             <>
                               <text x="30" y="25" textAnchor="middle" fontSize="0.58rem" fontWeight="bold" fill="#334155">
                                 Total
@@ -929,14 +943,7 @@ function App() {
           </div>
         );
       case 'settings':
-        // Settings state extensions
-        const [showChangePassword, setShowChangePassword] = useState(false);
-        const [showDeleteAccount, setShowDeleteAccount] = useState(false);
-        const [show2FAModal, setShow2FAModal] = useState(false);
-        const [showGoodbye, setShowGoodbye] = useState(false);
-        const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
-        const [passwordError, setPasswordError] = useState('');
-        const [languageLabel, setLanguageLabel] = useState('English');
+        // Settings state extensions - now using state from top level
         const themeOptions = [
           { value: 'light', label: 'Light' },
           { value: 'dark', label: 'Dark' },
@@ -966,27 +973,6 @@ function App() {
           highContrast: settings.highContrast ?? false,
           twoFactor: settings.twoFactor ?? false,
         };
-        // System theme detection
-        useEffect(() => {
-          if (fullSettings.theme === 'system') {
-            const mq = window.matchMedia('(prefers-color-scheme: dark)');
-            const applySystemTheme = () => {
-              setSettings((s: any) => ({ ...s, darkMode: mq.matches }));
-            };
-            applySystemTheme();
-            mq.addEventListener('change', applySystemTheme);
-            return () => mq.removeEventListener('change', applySystemTheme);
-          }
-        }, [fullSettings.theme, setSettings]);
-        // Font size & high contrast
-        useEffect(() => {
-          const root = document.documentElement;
-          root.classList.remove('text-sm', 'text-base', 'text-lg', 'contrast-high');
-          if (fullSettings.fontSize === 'sm') root.classList.add('text-sm');
-          else if (fullSettings.fontSize === 'md') root.classList.add('text-base');
-          else if (fullSettings.fontSize === 'lg') root.classList.add('text-lg');
-          if (fullSettings.highContrast) root.classList.add('contrast-high');
-        }, [fullSettings.fontSize, fullSettings.highContrast]);
         // Save settings helper
         const saveSettings = (newSettings: any) => {
           setSettings((s: any) => ({ ...s, ...newSettings }));
@@ -1257,6 +1243,55 @@ function App() {
     setCalendarModalOpen(false);
     setCalendarFadeKey(k => k + 1);
   }, [calendarFilter]);
+
+  // System theme detection
+  useEffect(() => {
+    const fullSettings = {
+      theme: settings.theme || 'light',
+      darkMode: settings.darkMode ?? false,
+      notifications: settings.notifications ?? true,
+      emailNotifications: settings.emailNotifications ?? false,
+      soundNotifications: settings.soundNotifications ?? true,
+      dailySummary: settings.dailySummary ?? false,
+      language: settings.language || 'en',
+      fontSize: settings.fontSize || 'md',
+      highContrast: settings.highContrast ?? false,
+      twoFactor: settings.twoFactor ?? false,
+    };
+    
+    if (fullSettings.theme === 'system') {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      const applySystemTheme = () => {
+        setSettings((s: any) => ({ ...s, darkMode: mq.matches }));
+      };
+      applySystemTheme();
+      mq.addEventListener('change', applySystemTheme);
+      return () => mq.removeEventListener('change', applySystemTheme);
+    }
+  }, [settings.theme, setSettings]);
+
+  // Font size & high contrast
+  useEffect(() => {
+    const fullSettings = {
+      theme: settings.theme || 'light',
+      darkMode: settings.darkMode ?? false,
+      notifications: settings.notifications ?? true,
+      emailNotifications: settings.emailNotifications ?? false,
+      soundNotifications: settings.soundNotifications ?? true,
+      dailySummary: settings.dailySummary ?? false,
+      language: settings.language || 'en',
+      fontSize: settings.fontSize || 'md',
+      highContrast: settings.highContrast ?? false,
+      twoFactor: settings.twoFactor ?? false,
+    };
+    
+    const root = document.documentElement;
+    root.classList.remove('text-sm', 'text-base', 'text-lg', 'contrast-high');
+    if (fullSettings.fontSize === 'sm') root.classList.add('text-sm');
+    else if (fullSettings.fontSize === 'md') root.classList.add('text-base');
+    else if (fullSettings.fontSize === 'lg') root.classList.add('text-lg');
+    if (fullSettings.highContrast) root.classList.add('contrast-high');
+  }, [settings.fontSize, settings.highContrast]);
 
   // Helper: get all deadlines for a date (filtered)
   const getDeadlinesForDate = (date: Date) => {
