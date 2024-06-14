@@ -28,7 +28,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Star,
-  AlertCircle
+  AlertCircle,
+  MailOpen,
+  MailX
 } from 'lucide-react';
 import Calendar from 'react-calendar';
 import Select from 'react-select';
@@ -151,9 +153,25 @@ function App() {
     );
   };
 
+  const markNotificationAsUnread = (id: string) => {
+    setNotifications(prev => 
+      prev.map(notification => 
+        notification.id === id 
+          ? { ...notification, read: false }
+          : notification
+      )
+    );
+  };
+
   const markAllAsRead = () => {
     setNotifications(prev => 
       prev.map(notification => ({ ...notification, read: true }))
+    );
+  };
+
+  const markAllAsUnread = () => {
+    setNotifications(prev => 
+      prev.map(notification => ({ ...notification, read: false }))
     );
   };
 
@@ -506,54 +524,90 @@ function App() {
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Notifications</h2>
                 <p className="text-gray-600 dark:text-gray-300">Stay updated with your latest activities</p>
               </div>
-              {unreadCount > 0 && (
-                <Button variant="ghost" onClick={markAllAsRead}>
-                  Mark all as read
-                </Button>
-              )}
+              <div className="flex items-center gap-3">
+                {unreadCount > 0 && (
+                  <Button variant="ghost" onClick={markAllAsRead} icon={MailOpen} className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20">
+                    Mark all as read
+                  </Button>
+                )}
+                {notifications.some(n => n.read) && (
+                  <Button variant="ghost" onClick={markAllAsUnread} icon={MailX} className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20">
+                    Mark all as unread
+                  </Button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-4">
               {notifications.map((notification) => (
                 <Card 
                   key={notification.id} 
-                  className={`transition-all duration-200 ${
+                  className={`transition-all duration-500 ${
                     !notification.read 
-                      ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20' 
-                      : ''
+                      ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 notification-float shadow-lg hover:shadow-xl' 
+                      : 'notification-stable hover:shadow-md'
                   }`}
                 >
                   <div className="flex items-start gap-4">
-                    <div className={`p-2 rounded-lg ${
+                    <div className={`p-2 rounded-lg transition-all duration-300 ${
                       notification.type === 'task_assigned' ? 'bg-blue-100 dark:bg-blue-900' :
                       notification.type === 'deadline_approaching' ? 'bg-yellow-100 dark:bg-yellow-900' :
                       notification.type === 'task_completed' ? 'bg-green-100 dark:bg-green-900' :
                       'bg-gray-100 dark:bg-gray-800'
-                    }`}>
+                    } ${!notification.read ? 'animate-pulse' : ''}`}>
                       <Bell className={`h-5 w-5 ${
                         notification.type === 'task_assigned' ? 'text-blue-600 dark:text-blue-400' :
                         notification.type === 'deadline_approaching' ? 'text-yellow-600 dark:text-yellow-400' :
                         notification.type === 'task_completed' ? 'text-green-600 dark:text-green-400' :
                         'text-gray-600 dark:text-gray-400'
-                      }`} />
+                      } ${!notification.read ? 'animate-bounce' : ''}`} />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-medium text-gray-900 dark:text-white">{notification.title}</h3>
-                          <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">{notification.message}</p>
-                          <p className="text-gray-500 dark:text-gray-400 text-xs mt-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className={`font-medium ${
+                              !notification.read 
+                                ? 'text-gray-900 dark:text-white font-semibold' 
+                                : 'text-gray-800 dark:text-gray-200'
+                            }`}>
+                              {notification.title}
+                            </h3>
+                            {!notification.read && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping" />
+                            )}
+                          </div>
+                          <p className={`text-sm mt-1 ${
+                            !notification.read 
+                              ? 'text-gray-700 dark:text-gray-200' 
+                              : 'text-gray-600 dark:text-gray-300'
+                          }`}>
+                            {notification.message}
+                          </p>
+                          <p className="text-gray-500 dark:text-gray-400 text-xs mt-2 flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
                             {new Date(notification.timestamp).toLocaleString()}
                           </p>
                         </div>
-                        {!notification.read && (
-                          <button
-                            onClick={() => markNotificationAsRead(notification.id)}
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
-                          >
-                            Mark as read
-                          </button>
-                        )}
+                        <div className="flex items-center gap-2 ml-4">
+                          {!notification.read ? (
+                            <button
+                              onClick={() => markNotificationAsRead(notification.id)}
+                              className="flex items-center gap-1 px-3 py-1.5 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 text-sm font-medium bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-all duration-200 hover:scale-105"
+                            >
+                              <MailOpen className="h-3 w-3" />
+                              Mark as read
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => markNotificationAsUnread(notification.id)}
+                              className="flex items-center gap-1 px-3 py-1.5 text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 text-sm font-medium bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-lg transition-all duration-200 hover:scale-105 opacity-0 group-hover:opacity-100"
+                            >
+                              <MailX className="h-3 w-3" />
+                              Mark as unread
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -563,11 +617,45 @@ function App() {
 
             {notifications.length === 0 && (
               <div className="text-center py-12">
-                <Bell className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                <div className="relative">
+                  <Bell className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4 animate-bounce" />
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full animate-ping" />
+                </div>
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No notifications</h3>
                 <p className="text-gray-600 dark:text-gray-300">You're all caught up!</p>
               </div>
             )}
+
+            {/* Notification Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+              <Card className="text-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+                <div className="p-4">
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                    {notifications.length}
+                  </div>
+                  <div className="text-sm text-blue-600 dark:text-blue-400">Total Notifications</div>
+                </div>
+              </Card>
+              
+              <Card className="text-center bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
+                <div className="p-4">
+                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1 flex items-center justify-center gap-1">
+                    {unreadCount}
+                    {unreadCount > 0 && <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />}
+                  </div>
+                  <div className="text-sm text-orange-600 dark:text-orange-400">Unread</div>
+                </div>
+              </Card>
+              
+              <Card className="text-center bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
+                <div className="p-4">
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">
+                    {notifications.filter(n => n.read).length}
+                  </div>
+                  <div className="text-sm text-green-600 dark:text-green-400">Read</div>
+                </div>
+              </Card>
+            </div>
           </div>
         );
       case 'settings':
@@ -621,7 +709,7 @@ function App() {
                         <label className="text-sm font-medium text-gray-900 dark:text-white">Push Notifications</label>
                         <p className="text-sm text-gray-600 dark:text-gray-300">Receive push notifications</p>
                       </div>
-                      <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200">
+                      <button className="relative inline-flex h-6 -11 items-center rounded-full bg-gray-200">
                         <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1" />
                       </button>
                     </div>

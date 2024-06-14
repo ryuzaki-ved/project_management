@@ -213,3 +213,198 @@
     @apply p-2;
   }
 }
+
+/* Notification Animations */
+@keyframes notification-float {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  25% {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+  75% {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+}
+
+@keyframes notification-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 30px rgba(59, 130, 246, 0.4);
+  }
+}
+
+@keyframes notification-pulse-border {
+  0% {
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    border-color: rgba(59, 130, 246, 0.8);
+  }
+  100% {
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+}
+
+.notification-float {
+  animation: notification-float 3s ease-in-out infinite, notification-glow 2s ease-in-out infinite, notification-pulse-border 2s ease-in-out infinite;
+  position: relative;
+  z-index: 10;
+}
+
+.notification-float::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, rgba(59, 130, 246, 0.3), rgba(147, 197, 253, 0.3), rgba(59, 130, 246, 0.3));
+  border-radius: inherit;
+  z-index: -1;
+  animation: notification-pulse-border 2s ease-in-out infinite;
+}
+
+.notification-stable {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.notification-stable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Notification status indicators */
+@keyframes notification-ping {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.notification-ping {
+  animation: notification-ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Notification button animations */
+.notification-button {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.notification-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.notification-button:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+.notification-button:active {
+  transform: scale(0.95);
+}
+
+/* Unread notification special effects */
+.notification-unread {
+  position: relative;
+  overflow: visible;
+}
+
+.notification-unread::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+  border-radius: 50%;
+  animation: notification-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Notification stats cards */
+.notification-stats-card {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.notification-stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.notification-stats-card:hover::before {
+  left: 100%;
+}
+
+.notification-stats-card:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode specific notification styles */
+.dark .notification-float {
+  animation: notification-float 3s ease-in-out infinite, notification-glow 2s ease-in-out infinite;
+}
+
+.dark .notification-float::before {
+  background: linear-gradient(45deg, rgba(59, 130, 246, 0.4), rgba(147, 197, 253, 0.4), rgba(59, 130, 246, 0.4));
+}
+
+/* Responsive notification styles */
+@media (max-width: 768px) {
+  .notification-float {
+    animation-duration: 4s;
+  }
+  
+  .notification-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .notification-float,
+  .notification-ping,
+  .notification-pulse-border,
+  .notification-glow {
+    animation: none;
+  }
+  
+  .notification-float {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+}
