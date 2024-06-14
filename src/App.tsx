@@ -24,7 +24,11 @@ import {
   Clock,
   Target,
   Award,
-  Zap
+  Zap,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+  AlertCircle
 } from 'lucide-react';
 import Calendar from 'react-calendar';
 import Select from 'react-select';
@@ -47,7 +51,7 @@ import { Modal } from './components/ui/Modal';
 
 // Import data and types
 import { mockProjects, mockTasks, mockUsers, mockNotifications } from './data/mockData';
-import { Project, Task, User, Notification } from './types';
+import { Project, Task, Notification } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 
 function App() {
@@ -216,6 +220,70 @@ function App() {
     label: project.name
   }));
 
+  // Get tasks for selected date
+  const getTasksForDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return mockTasks.filter(task => {
+      const taskDate = new Date(task.dueDate).toISOString().split('T')[0];
+      return taskDate === dateStr;
+    });
+  };
+
+  // Get events for calendar tile
+  const getTileContent = ({ date, view }: { date: Date; view: string }) => {
+    if (view === 'month') {
+      const tasksForDate = getTasksForDate(date);
+      if (tasksForDate.length > 0) {
+        return (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {tasksForDate.slice(0, 2).map((task, index) => (
+              <div
+                key={task.id}
+                className={`w-2 h-2 rounded-full ${
+                  task.priority === 'urgent' ? 'bg-red-500' :
+                  task.priority === 'high' ? 'bg-orange-500' :
+                  task.priority === 'medium' ? 'bg-yellow-500' :
+                  'bg-green-500'
+                } animate-pulse`}
+                title={task.title}
+              />
+            ))}
+            {tasksForDate.length > 2 && (
+              <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" title={`+${tasksForDate.length - 2} more`} />
+            )}
+          </div>
+        );
+      }
+    }
+    return null;
+  };
+
+  // Check if date has events
+  const tileClassName = ({ date, view }: { date: Date; view: string }) => {
+    if (view === 'month') {
+      const tasksForDate = getTasksForDate(date);
+      const isToday = date.toDateString() === new Date().toDateString();
+      const isSelected = date.toDateString() === selectedDate.toDateString();
+      
+      let classes = 'calendar-tile transition-all duration-300 hover:scale-110 hover:shadow-lg relative group';
+      
+      if (isToday) {
+        classes += ' today-tile ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30';
+      }
+      
+      if (isSelected) {
+        classes += ' selected-tile bg-blue-600 text-white';
+      }
+      
+      if (tasksForDate.length > 0) {
+        classes += ' has-events';
+      }
+      
+      return classes;
+    }
+    return '';
+  };
+
   const renderContent = () => {
     switch (activeView) {
       case 'dashboard':
@@ -250,37 +318,178 @@ function App() {
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Calendar</h2>
                 <p className="text-gray-600 dark:text-gray-300">View and manage your schedule</p>
               </div>
-              <Button icon={Plus} onClick={() => setShowCreateTaskModal(true)}>
+              <Button icon={Plus} onClick={() => setShowCreateTaskModal(true)} className="shadow-lg hover:shadow-xl">
                 New Event
               </Button>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
-                <Card>
-                  <Calendar
-                    onChange={setSelectedDate}
-                    value={selectedDate}
-                    className="w-full border-none"
-                  />
+                <Card className="overflow-hidden">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <CalendarIcon className="h-5 w-5 text-blue-600" />
+                        {selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                          <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                        <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                          <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="enhanced-calendar">
+                      <Calendar
+                        onChange={setSelectedDate}
+                        value={selectedDate}
+                        className="w-full border-none"
+                        tileContent={getTileContent}
+                        tileClassName={tileClassName}
+                        showNeighboringMonth={false}
+                        prev2Label={null}
+                        next2Label={null}
+                        prevLabel={<ChevronLeft className="h-4 w-4" />}
+                        nextLabel={<ChevronRight className="h-4 w-4" />}
+                      />
+                    </div>
+                  </div>
                 </Card>
               </div>
               
               <div className="space-y-4">
-                <Card>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Upcoming Events</h3>
-                  <div className="space-y-3">
-                    {mockTasks.slice(0, 5).map((task) => (
-                      <div key={task.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">{task.title}</p>
-                          <p className="text-xs text-gray-600 dark:text-gray-300">
-                            {new Date(task.dueDate).toLocaleDateString()}
-                          </p>
-                        </div>
+                {/* Selected Date Info */}
+                <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                      {selectedDate.getDate()}
+                    </div>
+                    <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                      {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', year: 'numeric' })}
+                    </div>
+                    {getTasksForDate(selectedDate).length > 0 && (
+                      <div className="mt-3">
+                        <Badge variant="info" className="animate-pulse">
+                          {getTasksForDate(selectedDate).length} event{getTasksForDate(selectedDate).length !== 1 ? 's' : ''}
+                        </Badge>
                       </div>
-                    ))}
+                    )}
+                  </div>
+                </Card>
+
+                {/* Tasks for Selected Date */}
+                {getTasksForDate(selectedDate).length > 0 && (
+                  <Card>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <Star className="h-4 w-4 text-yellow-500" />
+                      Events for {selectedDate.toLocaleDateString()}
+                    </h3>
+                    <div className="space-y-3">
+                      {getTasksForDate(selectedDate).map((task) => (
+                        <div key={task.id} className="group p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105 cursor-pointer">
+                          <div className="flex items-start gap-3">
+                            <div className={`w-3 h-3 rounded-full mt-1.5 ${
+                              task.priority === 'urgent' ? 'bg-red-500 animate-pulse' :
+                              task.priority === 'high' ? 'bg-orange-500' :
+                              task.priority === 'medium' ? 'bg-yellow-500' :
+                              'bg-green-500'
+                            }`} />
+                            <div className="flex-1">
+                              <h4 className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                {task.title}
+                              </h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                                {task.description}
+                              </p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <Badge variant={
+                                  task.priority === 'urgent' ? 'danger' :
+                                  task.priority === 'high' ? 'warning' :
+                                  task.priority === 'medium' ? 'info' :
+                                  'default'
+                                } size="sm">
+                                  {task.priority}
+                                </Badge>
+                                <Avatar
+                                  src={task.assignee.avatar}
+                                  alt={task.assignee.name}
+                                  size="sm"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+
+                {/* Upcoming Events */}
+                <Card>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-blue-500" />
+                    Upcoming Events
+                  </h3>
+                  <div className="space-y-3">
+                    {mockTasks.slice(0, 5).map((task) => {
+                      const dueDate = new Date(task.dueDate);
+                      const isOverdue = dueDate < new Date() && task.status !== 'completed';
+                      const isToday = dueDate.toDateString() === new Date().toDateString();
+                      
+                      return (
+                        <div key={task.id} className="group flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-all duration-200 hover:scale-105 cursor-pointer">
+                          <div className={`w-2 h-2 rounded-full ${
+                            isOverdue ? 'bg-red-500 animate-pulse' :
+                            isToday ? 'bg-blue-500 animate-bounce' :
+                            'bg-gray-400'
+                          }`} />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                              {task.title}
+                            </p>
+                            <p className={`text-xs ${
+                              isOverdue ? 'text-red-600 dark:text-red-400 font-medium' :
+                              isToday ? 'text-blue-600 dark:text-blue-400 font-medium' :
+                              'text-gray-600 dark:text-gray-300'
+                            }`}>
+                              {isOverdue && <AlertCircle className="inline h-3 w-3 mr-1" />}
+                              {dueDate.toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Avatar
+                            src={task.assignee.avatar}
+                            alt={task.assignee.name}
+                            size="sm"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+
+                {/* Quick Stats */}
+                <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-purple-500" />
+                    This Month
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">
+                        {mockTasks.filter(t => t.status === 'completed').length}
+                      </div>
+                      <div className="text-xs text-purple-600 dark:text-purple-400">Completed</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-pink-600 dark:text-pink-400 mb-1">
+                        {mockTasks.filter(t => t.status === 'in-progress').length}
+                      </div>
+                      <div className="text-xs text-pink-600 dark:text-pink-400">In Progress</div>
+                    </div>
                   </div>
                 </Card>
               </div>
