@@ -41,7 +41,10 @@ import {
   Coffee,
   Gamepad2,
   Gift,
-  Sparkles
+  Sparkles,
+  FileText,
+  Save,
+  X
 } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Avatar } from '../ui/Avatar';
@@ -114,6 +117,7 @@ export const TeamView: React.FC = () => {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showMemberDetails, setShowMemberDetails] = useState(false);
   const [showTeamAnalytics, setShowTeamAnalytics] = useState(false);
+  const [showManageMembersModal, setShowManageMembersModal] = useState(false);
   const [inviteForm, setInviteForm] = useState({
     email: '',
     role: 'member',
@@ -163,6 +167,82 @@ export const TeamView: React.FC = () => {
     console.log('Inviting member:', inviteForm);
     setShowInviteModal(false);
     setInviteForm({ email: '', role: 'member', department: '', message: '' });
+  };
+
+  const handleExportTeam = () => {
+    // Prepare CSV data
+    const headers = [
+      'Name',
+      'Email',
+      'Role',
+      'Department',
+      'Status',
+      'Performance',
+      'Projects',
+      'Tasks Completed',
+      'Join Date',
+      'Location',
+      'Phone',
+      'Timezone'
+    ];
+
+    const csvData = filteredMembers.map(member => [
+      member.name,
+      member.email,
+      member.role,
+      member.department,
+      member.status,
+      `${member.performance}%`,
+      member.projects.toString(),
+      member.tasksCompleted.toString(),
+      new Date(member.joinDate).toLocaleDateString(),
+      member.location || '',
+      member.phone || '',
+      member.timezone
+    ]);
+
+    // Create CSV content
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.map(field => `"${field}"`).join(','))
+    ].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `team_members_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    console.log('Team data exported successfully');
+  };
+
+  const handleManageTeam = () => {
+    setShowManageMembersModal(true);
+  };
+
+  const handleEditMember = (member: TeamMember) => {
+    console.log('Editing member:', member.name);
+    // TODO: Implement edit functionality
+    setSelectedMember(member);
+    setShowMemberDetails(true);
+  };
+
+  const handleDeleteMember = (member: TeamMember) => {
+    console.log('Deleting member:', member.name);
+    // TODO: Implement delete functionality with confirmation
+    if (window.confirm(`Are you sure you want to remove ${member.name} from the team?`)) {
+      console.log(`Member ${member.name} would be deleted`);
+    }
+  };
+
+  const handleBulkAction = (action: string, selectedMembers: string[]) => {
+    console.log(`Bulk action: ${action} for members:`, selectedMembers);
+    // TODO: Implement bulk actions
   };
 
   const MemberCard = ({ member }: { member: TeamMember }) => (
@@ -481,7 +561,7 @@ export const TeamView: React.FC = () => {
             <Button variant="ghost" size="sm" icon={Download}>
               Export
             </Button>
-            <Button variant="ghost" size="sm" icon={Settings}>
+            <Button variant="ghost" icon={Settings} onClick={handleManageTeam}>
               Manage
             </Button>
           </div>
@@ -776,6 +856,143 @@ export const TeamView: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      {/* Manage Team Members Modal */}
+      <Modal
+        isOpen={showManageMembersModal}
+        onClose={() => setShowManageMembersModal(false)}
+        title="Manage Team Members"
+        size="xl"
+      >
+        <div className="space-y-6">
+          {/* Bulk Actions */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="flex items-center gap-4">
+              <h3 className="font-medium text-gray-900 dark:text-white">Bulk Actions</h3>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" icon={Mail} onClick={() => handleBulkAction('email', [])}>
+                  Email All
+                </Button>
+                <Button variant="ghost" size="sm" icon={Download} onClick={handleExportTeam}>
+                  Export Selected
+                </Button>
+                <Button variant="ghost" size="sm" icon={UserPlus} onClick={() => setShowInviteModal(true)}>
+                  Invite More
+                </Button>
+              </div>
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              {filteredMembers.length} members
+            </div>
+          </div>
+
+          {/* Team Members List */}
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {filteredMembers.map((member) => (
+              <div key={member.id} className="flex items-center justify-between p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <div className="flex items-center gap-4">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                    onChange={(e) => {
+                      // TODO: Handle selection
+                      console.log(`Member ${member.name} selected:`, e.target.checked);
+                    }}
+                  />
+                  <Avatar
+                    src={member.avatar}
+                    alt={member.name}
+                    size="md"
+                    status={member.status}
+                  />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-medium text-gray-900 dark:text-white">{member.name}</h4>
+                      {getRoleIcon(member.role)}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{member.email}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="default" size="sm">{member.department}</Badge>
+                      <Badge variant={member.status === 'online' ? 'success' : 'default'} size="sm">
+                        {member.status}
+                      </Badge>
+                      <Badge variant="info" size="sm">{member.role}</Badge>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-6">
+                  <div className="text-center">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">{member.performance}%</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Performance</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">{member.projects}</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Projects</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">{member.tasksCompleted}</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Tasks</div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      icon={Eye} 
+                      onClick={() => {
+                        setSelectedMember(member);
+                        setShowMemberDetails(true);
+                      }}
+                      className="hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                    >
+                      View
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      icon={Edit} 
+                      onClick={() => handleEditMember(member)}
+                      className="hover:bg-green-50 dark:hover:bg-green-900/30"
+                    >
+                      Edit
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      icon={Trash2} 
+                      onClick={() => handleDeleteMember(member)}
+                      className="hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400"
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Management Actions */}
+          <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" icon={FileText} onClick={() => console.log('Generate team report')}>
+                Generate Report
+              </Button>
+              <Button variant="ghost" icon={Settings} onClick={() => console.log('Team settings')}>
+                Team Settings
+              </Button>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" onClick={() => setShowManageMembersModal(false)}>
+                Close
+              </Button>
+              <Button icon={Save} onClick={() => console.log('Save changes')}>
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Modal>
 
       {/* Team Analytics Modal */}
       <Modal
