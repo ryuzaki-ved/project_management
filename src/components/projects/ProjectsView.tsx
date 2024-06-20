@@ -589,6 +589,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
               </div>
             </div>
             <Button variant="ghost" icon={Eye} className="hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
+            <Button variant="ghost" icon={Eye} onClick={handleViewProjectDetails} className="hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
               View Details
             </Button>
           </div>

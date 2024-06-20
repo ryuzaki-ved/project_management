@@ -98,8 +98,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
       <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
         <button
           onClick={(e) => {
-            e.stopPropagation();
-            setIsBookmarked(!isBookmarked);
+            handleBookmarkToggle(e);
           }}
           className={`p-2 rounded-full backdrop-blur-sm transition-all duration-200 hover:scale-110 ${
             isBookmarked 
@@ -111,8 +110,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
         </button>
         <button
           onClick={(e) => {
-            e.stopPropagation();
-            setIsLiked(!isLiked);
+            handleLikeToggle(e);
           }}
           className={`p-2 rounded-full backdrop-blur-sm transition-all duration-200 hover:scale-110 ${
             isLiked 
@@ -271,13 +269,13 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
             </div>
             
             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-              <Button variant="ghost" size="sm" className="p-1.5 h-auto">
+              <Button variant="ghost" size="sm" className="p-1.5 h-auto" onClick={handleViewProject}>
                 <Eye className="h-3 w-3" />
               </Button>
-              <Button variant="ghost" size="sm" className="p-1.5 h-auto">
+              <Button variant="ghost" size="sm" className="p-1.5 h-auto" onClick={handleEditProject}>
                 <Edit className="h-3 w-3" />
               </Button>
-              <Button variant="ghost" size="sm" className="p-1.5 h-auto">
+              <Button variant="ghost" size="sm" className="p-1.5 h-auto" onClick={handleShareProject}>
                 <Share2 className="h-3 w-3" />
               </Button>
             </div>
@@ -304,7 +302,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
                 <span className="text-xs font-medium">Almost done!</span>
               </div>
             )}
-            <button className="opacity-0 group-hover:opacity-100 transition-all duration-300 p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transform rotate-0 hover:rotate-90">
+            <button onClick={handleMoreActions} className="opacity-0 group-hover:opacity-100 transition-all duration-300 p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transform rotate-0 hover:rotate-90">
               <MoreHorizontal className="h-4 w-4 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
