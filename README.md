@@ -386,7 +386,7 @@ npm run dev
 - Contact the development team
 
 ---
-
+<!-- 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -399,9 +399,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ❌ Liability
 - ❌ Warranty
 
----
+--- -->
 
-## 👥 Team
+<!-- ## 👥 Team
 
 ### Core Contributors
 - **Sarah Chen** - Lead Developer & UI/UX Designer
@@ -414,9 +414,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Special thanks to the open-source community for the amazing tools and libraries
 - Inspired by modern project management methodologies and user experience principles
 
----
+--- -->
 
-## 📞 Support & Contact
+<!-- ## 📞 Support & Contact
 
 ### Get in Touch
 - **Email**: support@projectflow.dev
@@ -429,7 +429,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Twitter**: [@ProjectFlowApp](https://twitter.com/ProjectFlowApp)
 - **LinkedIn**: [ProjectFlow Company Page](https://linkedin.com/company/projectflow)
 
----
+--- -->
 
 ## 🗺️ Roadmap
 
@@ -452,7 +452,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-  <p>Made with ❤️ by the ProjectFlow Team</p>
+  <p>Made with ❤️ by Ryuzaki</p>
   <p>
     <a href="#-overview">Back to Top</a> •
     <a href="https://github.com/yourusername/projectflow">GitHub</a> •
