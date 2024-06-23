@@ -561,6 +561,9 @@ export const TeamView: React.FC = () => {
             <Button variant="ghost" size="sm" icon={Download}>
               Export
             </Button>
+            <Button variant="ghost" size="sm" icon={Download} onClick={handleExportTeam}>
+              Export
+            </Button>
             <Button variant="ghost" icon={Settings} onClick={handleManageTeam}>
               Manage
             </Button>
