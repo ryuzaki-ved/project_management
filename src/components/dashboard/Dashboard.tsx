@@ -14,23 +14,28 @@ import { TaskCard } from '../tasks/TaskCard';
 import { Card } from '../ui/Card';
 import { Avatar } from '../ui/Avatar';
 import { Badge } from '../ui/Badge';
-import { mockProjects, mockTasks, mockUsers } from '../../data/mockData';
+import { mockUsers } from '../../data/mockData';
+import { Project, Task } from '../../types';
 
 interface DashboardProps {
+  projects: Project[];
+  tasks: Task[];
   onProjectClick: (projectId: string) => void;
   onTaskClick: (taskId: string) => void;
   onViewAllProjects: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
+  projects,
+  tasks,
   onProjectClick,
   onTaskClick,
   onViewAllProjects
 }) => {
-  const activeProjects = mockProjects.filter(p => p.status === 'active');
-  const completedTasks = mockTasks.filter(t => t.status === 'completed').length;
-  const inProgressTasks = mockTasks.filter(t => t.status === 'in-progress').length;
-  const upcomingTasks = mockTasks.filter(t => {
+  const activeProjects = projects.filter(p => p.status === 'active');
+  const completedTasks = tasks.filter(t => t.status === 'completed').length;
+  const inProgressTasks = tasks.filter(t => t.status === 'in-progress').length;
+  const upcomingTasks = tasks.filter(t => {
     const dueDate = new Date(t.dueDate);
     const today = new Date();
     const threeDaysFromNow = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);

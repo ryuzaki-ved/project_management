@@ -3,14 +3,18 @@ import { Plus, Filter, Grid, List, Calendar } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { TaskCard } from './TaskCard';
 import { Badge } from '../ui/Badge';
-import { mockTasks } from '../../data/mockData';
+import { Task } from '../../types';
 
 interface TasksViewProps {
+  tasks: Task[];
+  setTasks: (tasks: Task[] | ((prev: Task[]) => Task[])) => void;
   onTaskClick: (taskId: string) => void;
   onCreateTask: () => void;
 }
 
 export const TasksView: React.FC<TasksViewProps> = ({
+  tasks,
+  setTasks,
   onTaskClick,
   onCreateTask
 }) => {
@@ -23,19 +27,19 @@ export const TasksView: React.FC<TasksViewProps> = ({
     
     switch (filter) {
       case 'my-tasks':
-        return mockTasks.filter(task => task.assignee.id === '1'); // Current user
+        return tasks.filter(task => task.assignee.id === '1'); // Current user
       case 'today':
-        return mockTasks.filter(task => {
+        return tasks.filter(task => {
           const dueDate = new Date(task.dueDate);
           dueDate.setHours(0, 0, 0, 0);
           return dueDate.getTime() === today.getTime();
         });
       case 'overdue':
-        return mockTasks.filter(task => 
+        return tasks.filter(task => 
           new Date(task.dueDate) < today && task.status !== 'completed'
         );
       default:
-        return mockTasks;
+        return tasks;
     }
   };
 

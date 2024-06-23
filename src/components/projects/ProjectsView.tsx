@@ -45,20 +45,26 @@ import { ProjectCard } from './ProjectCard';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Avatar } from '../ui/Avatar';
-import { mockProjects, mockTasks, mockUsers } from '../../data/mockData';
+import { Modal } from '../ui/Modal';
+import { mockUsers } from '../../data/mockData';
+import { Project } from '../../types';
+import { toast } from 'react-hot-toast';
 
 interface ProjectsViewProps {
+  projects: Project[];
+  setProjects: (projects: Project[] | ((prev: Project[]) => Project[])) => void;
   onProjectClick: (projectId: string) => void;
   onCreateProject: () => void;
+  onViewAnalytics: () => void;
 }
 
 // Enhanced project stats component
-const ProjectStats = () => {
-  const totalProjects = mockProjects.length;
-  const activeProjects = mockProjects.filter(p => p.status === 'active').length;
-  const completedProjects = mockProjects.filter(p => p.status === 'completed').length;
-  const onHoldProjects = mockProjects.filter(p => p.status === 'on-hold').length;
-  const avgProgress = Math.round(mockProjects.reduce((acc, p) => acc + p.progress, 0) / totalProjects);
+const ProjectStats = ({ projects }: { projects: Project[] }) => {
+  const totalProjects = projects.length;
+  const activeProjects = projects.filter(p => p.status === 'active').length;
+  const completedProjects = projects.filter(p => p.status === 'completed').length;
+  const onHoldProjects = projects.filter(p => p.status === 'on-hold').length;
+  const avgProgress = totalProjects > 0 ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / totalProjects) : 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
@@ -137,7 +143,17 @@ const ProjectStats = () => {
 };
 
 // Quick actions component
-const QuickActions = ({ onCreateProject }: { onCreateProject: () => void }) => (
+const QuickActions = ({ 
+  onCreateProject, 
+  onImport, 
+  onExport, 
+  onViewAnalytics 
+}: { 
+  onCreateProject: () => void;
+  onImport: () => void;
+  onExport: () => void;
+  onViewAnalytics: () => void;
+}) => (
   <Card className="mb-6 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 border-blue-200 dark:border-blue-800">
     <div className="flex flex-col md:flex-row items-center justify-between gap-4">
       <div className="flex items-center gap-4">
@@ -150,13 +166,13 @@ const QuickActions = ({ onCreateProject }: { onCreateProject: () => void }) => (
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" icon={Upload} className="hover:bg-blue-50 dark:hover:bg-blue-900/30">
+        <Button variant="ghost" size="sm" icon={Upload} onClick={onImport} className="hover:bg-blue-50 dark:hover:bg-blue-900/30">
           Import
         </Button>
-        <Button variant="ghost" size="sm" icon={Download} className="hover:bg-green-50 dark:hover:bg-green-900/30">
+        <Button variant="ghost" size="sm" icon={Download} onClick={onExport} className="hover:bg-green-50 dark:hover:bg-green-900/30">
           Export
         </Button>
-        <Button variant="ghost" size="sm" icon={BarChart3} className="hover:bg-purple-50 dark:hover:bg-purple-900/30">
+        <Button variant="ghost" size="sm" icon={BarChart3} onClick={onViewAnalytics} className="hover:bg-purple-50 dark:hover:bg-purple-900/30">
           Analytics
         </Button>
         <Button icon={Plus} onClick={onCreateProject} className="shadow-lg hover:shadow-xl">
@@ -435,17 +451,22 @@ const EmptyState = ({ filter, onCreateProject }: any) => (
 );
 
 export const ProjectsView: React.FC<ProjectsViewProps> = ({
+  projects,
+  setProjects,
   onProjectClick,
-  onCreateProject
+  onCreateProject,
+  onViewAnalytics
 }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'kanban'>('grid');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'on-hold'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importData, setImportData] = useState('');
 
   // Filter and sort projects
-  const filteredProjects = mockProjects
+  const filteredProjects = projects
     .filter(project => {
       const matchesFilter = filter === 'all' || project.status === filter;
       const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -480,6 +501,48 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
       }
     });
 
+  const handleImport = () => {
+    setShowImportModal(true);
+  };
+
+  const handleExport = () => {
+    const dataStr = JSON.stringify(projects, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `projects_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success('Projects exported successfully!');
+  };
+
+  const handleImportSubmit = () => {
+    try {
+      const parsedData = JSON.parse(importData);
+      if (Array.isArray(parsedData)) {
+        // Validate that each item has required project properties
+        const validProjects = parsedData.filter(item => 
+          item.id && item.name && item.status && item.priority
+        );
+        if (validProjects.length > 0) {
+          setProjects(prev => [...prev, ...validProjects]);
+          toast.success(`Imported ${validProjects.length} projects successfully!`);
+          setShowImportModal(false);
+          setImportData('');
+        } else {
+          toast.error('No valid projects found in the imported data');
+        }
+      } else {
+        toast.error('Invalid data format. Please provide an array of projects.');
+      }
+    } catch (error) {
+      toast.error('Invalid JSON format. Please check your data.');
+    }
+  };
+
   // Group projects by status for kanban view
   const projectsByStatus = {
     active: filteredProjects.filter(p => p.status === 'active'),
@@ -499,10 +562,15 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
       </div>
 
       {/* Project Stats */}
-      <ProjectStats />
+      <ProjectStats projects={projects} />
 
       {/* Quick Actions */}
-      <QuickActions onCreateProject={onCreateProject} />
+      <QuickActions 
+        onCreateProject={onCreateProject}
+        onImport={handleImport}
+        onExport={handleExport}
+        onViewAnalytics={onViewAnalytics}
+      />
 
       {/* Filters */}
       <ProjectFilters
@@ -571,6 +639,40 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
           )}
         </>
       )}
+
+      {/* Import Modal */}
+      <Modal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        title="Import Projects"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Project Data (JSON)
+            </label>
+            <textarea
+              value={importData}
+              onChange={(e) => setImportData(e.target.value)}
+              rows={10}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono text-sm"
+              placeholder="Paste your JSON data here..."
+            />
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              Paste an array of project objects in JSON format. Each project should have at least: id, name, status, and priority.
+            </p>
+          </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button variant="ghost" onClick={() => setShowImportModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleImportSubmit} disabled={!importData.trim()}>
+              Import Projects
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Project Insights */}
       {filteredProjects.length > 0 && (

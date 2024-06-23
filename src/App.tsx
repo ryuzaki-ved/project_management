@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
 import { 
   Bell, 
   Plus, 
@@ -55,6 +55,7 @@ import { Modal } from './components/ui/Modal';
 import { mockProjects, mockTasks, mockUsers, mockNotifications } from './data/mockData';
 import { Project, Task, Notification } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { v4 as uuidv4 } from 'uuid';
 
 function App() {
   const [activeView, setActiveView] = useState('dashboard');
@@ -66,6 +67,8 @@ function App() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [notifications, setNotifications] = useLocalStorage<Notification[]>('notifications', mockNotifications);
   const [darkMode, setDarkMode] = useLocalStorage('darkMode', false);
+  const [projects, setProjects] = useLocalStorage<Project[]>('projects', mockProjects);
+  const [tasks, setTasks] = useLocalStorage<Task[]>('tasks', mockTasks);
 
   // Task form state
   const [taskForm, setTaskForm] = useState({
@@ -111,7 +114,29 @@ function App() {
   }, [darkMode]);
 
   const handleCreateTask = () => {
-    console.log('Creating task:', taskForm);
+    if (!taskForm.title.trim()) {
+      toast.error('Task title is required');
+      return;
+    }
+
+    const assignee = mockUsers.find(user => user.id === taskForm.assignee) || mockUsers[0];
+    const newTask: Task = {
+      id: uuidv4(),
+      title: taskForm.title,
+      description: taskForm.description,
+      status: 'todo',
+      priority: taskForm.priority as 'low' | 'medium' | 'high' | 'urgent',
+      assignee,
+      projectId: taskForm.project,
+      dueDate: taskForm.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      createdAt: new Date().toISOString(),
+      tags: taskForm.tags,
+      attachments: [],
+      comments: []
+    };
+
+    setTasks(prev => [...prev, newTask]);
+    toast.success('Task created successfully!');
     setShowCreateTaskModal(false);
     setTaskForm({
       title: '',
@@ -125,7 +150,29 @@ function App() {
   };
 
   const handleCreateProject = () => {
-    console.log('Creating project:', projectForm);
+    if (!projectForm.name.trim()) {
+      toast.error('Project name is required');
+      return;
+    }
+
+    const teamMembers = mockUsers.filter(user => projectForm.team.includes(user.id));
+    const newProject: Project = {
+      id: uuidv4(),
+      name: projectForm.name,
+      description: projectForm.description,
+      status: 'active',
+      priority: projectForm.priority as 'low' | 'medium' | 'high' | 'urgent',
+      progress: 0,
+      startDate: projectForm.startDate || new Date().toISOString(),
+      endDate: projectForm.endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      team: teamMembers,
+      color: projectForm.color,
+      tasksCount: 0,
+      completedTasks: 0
+    };
+
+    setProjects(prev => [...prev, newProject]);
+    toast.success('Project created successfully!');
     setShowCreateProjectModal(false);
     setProjectForm({
       name: '',
@@ -187,7 +234,7 @@ function App() {
     doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 35);
     
     // Projects table
-    const projectData = mockProjects.map(project => [
+    const projectData = projects.map(project => [
       project.name,
       project.status,
       project.priority,
@@ -203,7 +250,7 @@ function App() {
     });
     
     // Tasks table
-    const taskData = mockTasks.map(task => [
+    const taskData = tasks.map(task => [
       task.title,
       task.status,
       task.priority,
@@ -221,6 +268,10 @@ function App() {
     doc.save('project-report.pdf');
   };
 
+  const handleViewAnalytics = () => {
+    setActiveView('reports');
+  };
+
   const priorityOptions = [
     { value: 'low', label: 'Low Priority' },
     { value: 'medium', label: 'Medium Priority' },
@@ -233,7 +284,7 @@ function App() {
     label: user.name
   }));
 
-  const projectOptions = mockProjects.map(project => ({
+  const projectOptions = projects.map(project => ({
     value: project.id,
     label: project.name
   }));
@@ -241,7 +292,7 @@ function App() {
   // Get tasks for selected date
   const getTasksForDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    return mockTasks.filter(task => {
+    return tasks.filter(task => {
       const taskDate = new Date(task.dueDate).toISOString().split('T')[0];
       return taskDate === dateStr;
     });
@@ -307,6 +358,8 @@ function App() {
       case 'dashboard':
         return (
           <Dashboard
+            projects={projects}
+            tasks={tasks}
             onProjectClick={(id) => console.log('Project clicked:', id)}
             onTaskClick={(id) => console.log('Task clicked:', id)}
             onViewAllProjects={() => setActiveView('projects')}
@@ -315,13 +368,18 @@ function App() {
       case 'projects':
         return (
           <ProjectsView
+            projects={projects}
+            setProjects={setProjects}
             onProjectClick={(id) => console.log('Project clicked:', id)}
             onCreateProject={() => setShowCreateProjectModal(true)}
+            onViewAnalytics={handleViewAnalytics}
           />
         );
       case 'tasks':
         return (
           <TasksView
+            tasks={tasks}
+            setTasks={setTasks}
             onTaskClick={(id) => console.log('Task clicked:', id)}
             onCreateTask={() => setShowCreateTaskModal(true)}
           />
@@ -452,7 +510,7 @@ function App() {
                     Upcoming Events
                   </h3>
                   <div className="space-y-3">
-                    {mockTasks.slice(0, 5).map((task) => {
+                    {tasks.slice(0, 5).map((task) => {
                       const dueDate = new Date(task.dueDate);
                       const isOverdue = dueDate < new Date() && task.status !== 'completed';
                       const isToday = dueDate.toDateString() === new Date().toDateString();
@@ -498,13 +556,13 @@ function App() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">
-                        {mockTasks.filter(t => t.status === 'completed').length}
+                        {tasks.filter(t => t.status === 'completed').length}
                       </div>
                       <div className="text-xs text-purple-600 dark:text-purple-400">Completed</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-pink-600 dark:text-pink-400 mb-1">
-                        {mockTasks.filter(t => t.status === 'in-progress').length}
+                        {tasks.filter(t => t.status === 'in-progress').length}
                       </div>
                       <div className="text-xs text-pink-600 dark:text-pink-400">In Progress</div>
                     </div>
@@ -515,7 +573,7 @@ function App() {
           </div>
         );
       case 'reports':
-        return <ReportsView onExportPDF={exportToPDF} />;
+        return <ReportsView projects={projects} tasks={tasks} onExportPDF={exportToPDF} />;
       case 'notifications':
         return (
           <div className="space-y-6">
