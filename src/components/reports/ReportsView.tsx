@@ -19,7 +19,8 @@ import {
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
-import { mockProjects, mockTasks, mockUsers } from '../../data/mockData';
+import { mockUsers } from '../../data/mockData';
+import { Project, Task } from '../../types';
 
 // Animated Counter Component
 const AnimatedCounter: React.FC<{ value: number; duration?: number; suffix?: string }> = ({ 
@@ -318,19 +319,21 @@ const MetricCard: React.FC<{
 };
 
 interface ReportsViewProps {
+  projects: Project[];
+  tasks: Task[];
   onExportPDF: () => void;
 }
 
-export const ReportsView: React.FC<ReportsViewProps> = ({ onExportPDF }) => {
+export const ReportsView: React.FC<ReportsViewProps> = ({ projects, tasks, onExportPDF }) => {
   // Calculate metrics
-  const completedProjects = mockProjects.filter(p => p.status === 'completed').length;
-  const activeProjects = mockProjects.filter(p => p.status === 'active').length;
-  const onHoldProjects = mockProjects.filter(p => p.status === 'on-hold').length;
-  const totalTasks = mockTasks.length;
-  const completedTasks = mockTasks.filter(t => t.status === 'completed').length;
-  const inProgressTasks = mockTasks.filter(t => t.status === 'in-progress').length;
-  const todoTasks = mockTasks.filter(t => t.status === 'todo').length;
-  const reviewTasks = mockTasks.filter(t => t.status === 'review').length;
+  const completedProjects = projects.filter(p => p.status === 'completed').length;
+  const activeProjects = projects.filter(p => p.status === 'active').length;
+  const onHoldProjects = projects.filter(p => p.status === 'on-hold').length;
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(t => t.status === 'completed').length;
+  const inProgressTasks = tasks.filter(t => t.status === 'in-progress').length;
+  const todoTasks = tasks.filter(t => t.status === 'todo').length;
+  const reviewTasks = tasks.filter(t => t.status === 'review').length;
 
   // Project status data for pie chart
   const projectStatusData = [
@@ -349,10 +352,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onExportPDF }) => {
 
   // Priority distribution
   const priorityData = [
-    { name: 'Urgent', value: mockTasks.filter(t => t.priority === 'urgent').length, color: '#EF4444' },
-    { name: 'High', value: mockTasks.filter(t => t.priority === 'high').length, color: '#F97316' },
-    { name: 'Medium', value: mockTasks.filter(t => t.priority === 'medium').length, color: '#EAB308' },
-    { name: 'Low', value: mockTasks.filter(t => t.priority === 'low').length, color: '#22C55E' }
+    { name: 'Urgent', value: tasks.filter(t => t.priority === 'urgent').length, color: '#EF4444' },
+    { name: 'High', value: tasks.filter(t => t.priority === 'high').length, color: '#F97316' },
+    { name: 'Medium', value: tasks.filter(t => t.priority === 'medium').length, color: '#EAB308' },
+    { name: 'Low', value: tasks.filter(t => t.priority === 'low').length, color: '#22C55E' }
   ].filter(item => item.value > 0);
 
   return (
@@ -371,7 +374,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onExportPDF }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Total Projects"
-          value={mockProjects.length}
+          value={projects.length}
           change="+2 this month"
           changeType="increase"
           icon={FolderKanban}
@@ -435,7 +438,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onExportPDF }) => {
                   <div className="text-right">
                     <div className="font-semibold text-gray-900 dark:text-white">{item.value}</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {((item.value / mockProjects.length) * 100).toFixed(1)}%
+                      {((item.value / projects.length) * 100).toFixed(1)}%
                     </div>
                   </div>
                 </div>
@@ -508,11 +511,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onExportPDF }) => {
                 total={totalTasks}
               />
               <AnimatedProgressBar
-                percentage={(completedProjects / mockProjects.length) * 100}
+                percentage={(completedProjects / projects.length) * 100}
                 color="#3B82F6"
                 label="Projects Completed"
                 value={completedProjects}
-                total={mockProjects.length}
+                total={projects.length}
               />
               <AnimatedProgressBar
                 percentage={(mockUsers.filter(u => u.status === 'online').length / mockUsers.length) * 100}
@@ -579,7 +582,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ onExportPDF }) => {
             <p className="text-sm text-gray-600 dark:text-gray-400">Upcoming deadlines and milestones</p>
           </div>
           <div className="space-y-4">
-            {mockProjects.filter(p => p.status === 'active').map((project, index) => (
+            {projects.filter(p => p.status === 'active').map((project, index) => (
               <div key={project.id} className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                 <div 
                   className="w-4 h-4 rounded-full flex-shrink-0" 
