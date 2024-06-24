@@ -86,7 +86,6 @@ export const TasksView: React.FC<TasksViewProps> = ({
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
-              className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
             >
               <option value="all">All Tasks</option>
               <option value="my-tasks">My Tasks</option>

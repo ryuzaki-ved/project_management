@@ -52,6 +52,9 @@ import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { mockUsers, mockProjects, mockTasks } from '../../data/mockData';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { toast } from 'react-hot-toast';
 
 interface TeamMember {
   id: string;
@@ -243,6 +246,80 @@ export const TeamView: React.FC = () => {
   const handleBulkAction = (action: string, selectedMembers: string[]) => {
     console.log(`Bulk action: ${action} for members:`, selectedMembers);
     // TODO: Implement bulk actions
+  };
+
+  const handleGenerateTeamReport = () => {
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(20);
+    doc.text('Team Report', 20, 20);
+    
+    // Add generation date
+    doc.setFontSize(12);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 35);
+    
+    // Prepare table data
+    const tableHeaders = [
+      'Name',
+      'Email', 
+      'Role',
+      'Department',
+      'Status',
+      'Performance',
+      'Projects',
+      'Tasks',
+      'Join Date'
+    ];
+    
+    const tableData = filteredMembers.map(member => [
+      member.name,
+      member.email,
+      member.role,
+      member.department,
+      member.status,
+      `${member.performance}%`,
+      member.projects.toString(),
+      member.tasksCompleted.toString(),
+      new Date(member.joinDate).toLocaleDateString()
+    ]);
+    
+    // Add table
+    autoTable(doc, {
+      head: [tableHeaders],
+      body: tableData,
+      startY: 50,
+      styles: {
+        fontSize: 8,
+        cellPadding: 3,
+      },
+      headStyles: {
+        fillColor: [59, 130, 246],
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [245, 247, 250],
+      },
+    });
+    
+    // Add summary statistics
+    const finalY = (doc as any).lastAutoTable.finalY + 20;
+    doc.setFontSize(14);
+    doc.text('Team Summary', 20, finalY);
+    
+    doc.setFontSize(10);
+    const summaryY = finalY + 10;
+    doc.text(`Total Members: ${filteredMembers.length}`, 20, summaryY);
+    doc.text(`Online Members: ${filteredMembers.filter(m => m.status === 'online').length}`, 20, summaryY + 10);
+    doc.text(`Average Performance: ${Math.round(filteredMembers.reduce((acc, m) => acc + m.performance, 0) / filteredMembers.length)}%`, 20, summaryY + 20);
+    doc.text(`Total Projects: ${filteredMembers.reduce((acc, m) => acc + m.projects, 0)}`, 20, summaryY + 30);
+    doc.text(`Total Tasks Completed: ${filteredMembers.reduce((acc, m) => acc + m.tasksCompleted, 0)}`, 20, summaryY + 40);
+    
+    // Save the PDF
+    doc.save(`team_report_${new Date().toISOString().split('T')[0]}.pdf`);
+    
+    toast.success('Team report generated successfully!');
   };
 
   const MemberCard = ({ member }: { member: TeamMember }) => (
@@ -978,7 +1055,7 @@ export const TeamView: React.FC = () => {
           {/* Management Actions */}
           <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" icon={FileText} onClick={() => console.log('Generate team report')}>
+              <Button variant="ghost" icon={FileText} onClick={handleGenerateTeamReport}>
                 Generate Report
               </Button>
               <Button variant="ghost" icon={Settings} onClick={() => console.log('Team settings')}>
