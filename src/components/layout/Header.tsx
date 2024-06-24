@@ -5,19 +5,19 @@ import { Button } from '../ui/Button';
 import { mockUsers } from '../../data/mockData';
 
 interface HeaderProps {
-  onCreateTask: () => void;
   onCreateProject: () => void;
   notificationCount: number;
   onProfileClick?: () => void;
   onNotificationsClick?: () => void;
+  onCreateTask?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-  onCreateTask, 
   onCreateProject, 
   notificationCount, 
   onProfileClick,
-  onNotificationsClick
+  onNotificationsClick,
+  onCreateTask
 }) => {
   const currentUser = mockUsers[0];
 
@@ -30,15 +30,17 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            icon={Plus}
-            onClick={onCreateTask}
-            className="hidden sm:flex"
-          >
-            New Task
-          </Button>
+          {onCreateTask && (
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={Plus}
+              onClick={onCreateTask}
+              className="hidden sm:flex"
+            >
+              New Task
+            </Button>
+          )}
           
           <Button
             variant="primary"

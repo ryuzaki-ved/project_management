@@ -1,25 +1,43 @@
 import React, { useState } from 'react';
 import { Plus, Filter, Grid, List, Calendar } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { Modal } from '../ui/Modal';
 import { TaskCard } from './TaskCard';
+import { CreateTaskForm } from './CreateTaskForm';
 import { Badge } from '../ui/Badge';
 import { Task } from '../../types';
+import { toast } from 'react-hot-toast';
+import { v4 as uuidv4 } from 'uuid';
 
 interface TasksViewProps {
   tasks: Task[];
   setTasks: (tasks: Task[] | ((prev: Task[]) => Task[])) => void;
   onTaskClick: (taskId: string) => void;
-  onCreateTask: () => void;
 }
 
 export const TasksView: React.FC<TasksViewProps> = ({
   tasks,
   setTasks,
   onTaskClick,
-  onCreateTask
 }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'kanban'>('grid');
   const [filter, setFilter] = useState<'all' | 'my-tasks' | 'today' | 'overdue'>('all');
+  const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
+
+  const handleCreateTask = () => {
+    setShowCreateTaskModal(true);
+  };
+
+  const handleTaskSubmit = (taskData: Omit<Task, 'id'>) => {
+    const newTask: Task = {
+      ...taskData,
+      id: uuidv4()
+    };
+
+    setTasks(prevTasks => [...prevTasks, newTask]);
+    setShowCreateTaskModal(false);
+    toast.success('Task created successfully!');
+  };
 
   const getFilteredTasks = () => {
     const today = new Date();
@@ -74,7 +92,7 @@ export const TasksView: React.FC<TasksViewProps> = ({
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Tasks</h2>
           <p className="text-gray-600 dark:text-gray-300">Manage and track your tasks</p>
         </div>
-        <Button icon={Plus} onClick={onCreateTask}>
+        <Button icon={Plus} onClick={handleCreateTask}>
           New Task
         </Button>
       </div>
@@ -169,11 +187,24 @@ export const TasksView: React.FC<TasksViewProps> = ({
               : `No ${filter.replace('-', ' ')} tasks at the moment`
             }
           </p>
-          <Button icon={Plus} onClick={onCreateTask}>
+          <Button icon={Plus} onClick={handleCreateTask}>
             Create Task
           </Button>
         </div>
       )}
+
+      {/* Create Task Modal */}
+      <Modal
+        isOpen={showCreateTaskModal}
+        onClose={() => setShowCreateTaskModal(false)}
+        title="Create New Task"
+        size="lg"
+      >
+        <CreateTaskForm
+          onSubmit={handleTaskSubmit}
+          onClose={() => setShowCreateTaskModal(false)}
+        />
+      </Modal>
     </div>
   );
 };
