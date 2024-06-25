@@ -14,11 +14,11 @@ export const Badge: React.FC<BadgeProps> = ({
   const baseClasses = 'inline-flex items-center font-medium rounded-full';
   
   const variantClasses = {
-    default: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200',
-    success: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
-    warning: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200',
-    danger: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200',
-    info: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+    default: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200',
+    success: 'bg-success-100 dark:bg-success-900 text-success-800 dark:text-success-200',
+    warning: 'bg-warning-100 dark:bg-warning-900 text-warning-800 dark:text-warning-200',
+    danger: 'bg-danger-100 dark:bg-danger-900 text-danger-800 dark:text-danger-200',
+    info: 'bg-brand-100 dark:bg-brand-900 text-brand-800 dark:text-brand-200'
   };
   
   const sizeClasses = {
