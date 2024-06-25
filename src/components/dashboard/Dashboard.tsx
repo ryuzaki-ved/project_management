@@ -200,17 +200,3 @@ export const Dashboard: React.FC<DashboardProps> = ({
     </div>
   );
 };
-
-<style>{`
-@keyframes ring {
-  0% { transform: rotate(0); }
-  10% { transform: rotate(-15deg); }
-  20% { transform: rotate(10deg); }
-  30% { transform: rotate(-10deg); }
-  40% { transform: rotate(6deg); }
-  50% { transform: rotate(-4deg); }
-  60% { transform: rotate(0); }
-  100% { transform: rotate(0); }
-}
-.animate-ring { animation: ring 1s infinite; }
-`}</style>
