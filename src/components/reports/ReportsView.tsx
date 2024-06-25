@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { 
   Download, 
   TrendingUp, 
@@ -21,6 +23,13 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { mockUsers } from '../../data/mockData';
 import { Project, Task } from '../../types';
+
+// Extend jsPDF type to include autoTable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
 
 // Animated Counter Component
 const AnimatedCounter: React.FC<{ value: number; duration?: number; suffix?: string }> = ({ 
@@ -325,6 +334,221 @@ interface ReportsViewProps {
 }
 
 export const ReportsView: React.FC<ReportsViewProps> = ({ projects, tasks, onExportPDF }) => {
+  // Generate PDF Report Function
+  const generatePdfReport = () => {
+    try {
+      // Initialize PDF document
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      
+      // Add header with logo area and title
+      doc.setFillColor(59, 130, 246); // Blue background
+      doc.rect(0, 0, pageWidth, 40, 'F');
+      
+      // Add title
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(24);
+      doc.setFont('helvetica', 'bold');
+      doc.text('ProjectFlow - Analytics Report', 20, 25);
+      
+      // Add generation date
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      const currentDate = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      doc.text(`Generated on: ${currentDate}`, pageWidth - 20, 25, { align: 'right' });
+      
+      let yPosition = 60;
+      
+      // Executive Summary Section
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Executive Summary', 20, yPosition);
+      yPosition += 15;
+      
+      // Calculate key metrics
+      const totalProjects = projects.length;
+      const activeProjects = projects.filter(p => p.status === 'active').length;
+      const completedProjects = projects.filter(p => p.status === 'completed').length;
+      const totalTasks = tasks.length;
+      const completedTasks = tasks.filter(t => t.status === 'completed').length;
+      const avgProgress = totalProjects > 0 ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / totalProjects) : 0;
+      const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      
+      // Summary metrics
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      const summaryText = [
+        `• Total Projects: ${totalProjects} (${activeProjects} active, ${completedProjects} completed)`,
+        `• Total Tasks: ${totalTasks} (${completedTasks} completed)`,
+        `• Average Project Progress: ${avgProgress}%`,
+        `• Overall Task Completion Rate: ${completionRate}%`,
+        `• Active Team Members: ${mockUsers.filter(u => u.status === 'online').length}/${mockUsers.length}`
+      ];
+      
+      summaryText.forEach((text, index) => {
+        doc.text(text, 25, yPosition + (index * 8));
+      });
+      yPosition += summaryText.length * 8 + 20;
+      
+      // Projects Overview Section
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Projects Overview', 20, yPosition);
+      yPosition += 10;
+      
+      // Prepare project data for table
+      const projectTableData = projects.map(project => [
+        project.name,
+        project.status.charAt(0).toUpperCase() + project.status.slice(1).replace('-', ' '),
+        project.priority.charAt(0).toUpperCase() + project.priority.slice(1),
+        `${project.progress}%`,
+        `${project.completedTasks}/${project.tasksCount}`,
+        project.team.length.toString(),
+        new Date(project.endDate).toLocaleDateString()
+      ]);
+      
+      // Add projects table
+      doc.autoTable({
+        startY: yPosition,
+        head: [['Project Name', 'Status', 'Priority', 'Progress', 'Tasks', 'Team Size', 'Due Date']],
+        body: projectTableData,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [59, 130, 246],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 10
+        },
+        bodyStyles: {
+          fontSize: 9,
+          cellPadding: 4
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        },
+        columnStyles: {
+          0: { cellWidth: 35 }, // Project Name
+          1: { cellWidth: 20 }, // Status
+          2: { cellWidth: 20 }, // Priority
+          3: { cellWidth: 18 }, // Progress
+          4: { cellWidth: 18 }, // Tasks
+          5: { cellWidth: 18 }, // Team Size
+          6: { cellWidth: 25 }  // Due Date
+        },
+        margin: { left: 20, right: 20 },
+        didDrawPage: (data) => {
+          // Add page numbers
+          doc.setFontSize(10);
+          doc.setTextColor(128, 128, 128);
+          doc.text(
+            `Page ${data.pageNumber}`,
+            pageWidth - 30,
+            pageHeight - 10
+          );
+        }
+      });
+      
+      // Get the final Y position after the projects table
+      yPosition = (doc as any).lastAutoTable.finalY + 20;
+      
+      // Check if we need a new page for tasks section
+      if (yPosition > pageHeight - 100) {
+        doc.addPage();
+        yPosition = 30;
+      }
+      
+      // Tasks Overview Section
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Tasks Overview', 20, yPosition);
+      yPosition += 10;
+      
+      // Prepare task data for table
+      const taskTableData = tasks.slice(0, 20).map(task => [ // Limit to first 20 tasks to avoid overly long reports
+        task.title.length > 30 ? task.title.substring(0, 30) + '...' : task.title,
+        task.status.charAt(0).toUpperCase() + task.status.slice(1).replace('-', ' '),
+        task.priority.charAt(0).toUpperCase() + task.priority.slice(1),
+        task.assignee.name,
+        new Date(task.dueDate).toLocaleDateString(),
+        task.tags.slice(0, 2).join(', ') + (task.tags.length > 2 ? '...' : '')
+      ]);
+      
+      // Add tasks table
+      doc.autoTable({
+        startY: yPosition,
+        head: [['Task Title', 'Status', 'Priority', 'Assignee', 'Due Date', 'Tags']],
+        body: taskTableData,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [16, 185, 129],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 10
+        },
+        bodyStyles: {
+          fontSize: 9,
+          cellPadding: 4
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        },
+        columnStyles: {
+          0: { cellWidth: 45 }, // Task Title
+          1: { cellWidth: 25 }, // Status
+          2: { cellWidth: 20 }, // Priority
+          3: { cellWidth: 30 }, // Assignee
+          4: { cellWidth: 25 }, // Due Date
+          5: { cellWidth: 35 }  // Tags
+        },
+        margin: { left: 20, right: 20 },
+        didDrawPage: (data) => {
+          // Add page numbers
+          doc.setFontSize(10);
+          doc.setTextColor(128, 128, 128);
+          doc.text(
+            `Page ${data.pageNumber}`,
+            pageWidth - 30,
+            pageHeight - 10
+          );
+        }
+      });
+      
+      // Add footer with additional info
+      const finalY = (doc as any).lastAutoTable.finalY + 20;
+      if (finalY < pageHeight - 50) {
+        doc.setFontSize(10);
+        doc.setTextColor(128, 128, 128);
+        doc.text('This report was generated by ProjectFlow - Project Management Platform', 20, finalY + 10);
+        doc.text(`Total items: ${projects.length} projects, ${tasks.length} tasks`, 20, finalY + 20);
+        if (tasks.length > 20) {
+          doc.text(`Note: Only the first 20 tasks are shown in this report.`, 20, finalY + 30);
+        }
+      }
+      
+      // Generate filename with current date
+      const filename = `ProjectFlow_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      
+      // Save the PDF
+      doc.save(filename);
+      
+      // Show success message (you might want to use a toast notification here)
+      console.log('PDF report generated successfully!');
+      
+    } catch (error) {
+      console.error('Error generating PDF report:', error);
+      // You might want to show an error toast here
+      alert('Error generating PDF report. Please try again.');
+    }
+  };
+
   // Calculate metrics
   const completedProjects = projects.filter(p => p.status === 'completed').length;
   const activeProjects = projects.filter(p => p.status === 'active').length;
@@ -365,7 +589,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ projects, tasks, onExp
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Reports & Analytics</h2>
           <p className="text-gray-600 dark:text-gray-300">Comprehensive insights into your project performance</p>
         </div>
-        <Button icon={Download} onClick={onExportPDF} className="shadow-lg">
+        <Button icon={Download} onClick={generatePdfReport} className="shadow-lg">
           Export PDF
         </Button>
       </div>
