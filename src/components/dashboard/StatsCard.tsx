@@ -31,10 +31,10 @@ export const StatsCard: React.FC<StatsCardProps> = ({
     <Card hover className="group">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors">
+          <p className="text-sm font-medium text-neutral-600 group-hover:text-neutral-700 transition-colors">
             {title}
           </p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+          <p className="text-2xl font-bold text-neutral-900 dark:text-white mt-1">{value}</p>
           {change && (
             <p className={`text-sm mt-1 ${getChangeColor()}`}>
               {change}

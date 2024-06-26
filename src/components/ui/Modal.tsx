@@ -60,17 +60,17 @@ export const Modal: React.FC<ModalProps> = ({
           onClick={onClose}
         />
         <div className={`
-          relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl transform transition-all duration-300 scale-100
+          relative bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl transform transition-all duration-300 scale-100
           ${sizeClasses[size]} w-full max-h-[90vh] overflow-hidden
         `}>
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
+          <div className="flex items-center justify-between p-6 border-b border-neutral-200 dark:border-neutral-800">
+            <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">{title}</h2>
             <Button
               variant="ghost"
               size="sm"
               icon={X}
               onClick={onClose}
-              className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="rounded-full p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800"
             />
           </div>
           <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
