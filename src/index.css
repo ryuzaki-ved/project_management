@@ -5,7 +5,7 @@
 @keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
   to {
     opacity: 1;
@@ -13,14 +13,10 @@
   }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
-}
-
 /* Counter animation */
 @keyframes counter {
   from {
-    transform: translateY(20px);
+    transform: translateY(12px);
     opacity: 0;
   }
   to {
@@ -29,43 +25,215 @@
   }
 }
 
-.animate-counter {
-  animation: counter 0.6s ease-out;
-}
-
 /* Project card animations */
 @keyframes project-float {
   0%, 100% {
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
   }
-}
-
-.project-float {
-  animation: project-float 3s ease-in-out infinite;
 }
 
 /* Progress bar animations */
 @keyframes progress-fill {
   from {
     width: 0%;
+    opacity: 0.8;
   }
-}
-
-.progress-fill {
-  animation: progress-fill 1.5s ease-out;
+  to {
+    width: var(--progress-width);
+    opacity: 1;
+  }
 }
 
 /* Shimmer effect */
 @keyframes shimmer {
   0% {
     transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
   }
   100% {
     transform: translateX(100%);
+    opacity: 0;
   }
+}
+
+/* Pulse effect for priority indicators */
+@keyframes priority-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+/* Gradient text animation */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Button ripple effect */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+/* Status indicator animations */
+@keyframes status-blink {
+  0%, 60% {
+    opacity: 1;
+  }
+  61%, 100% {
+    opacity: 0.4;
+  }
+}
+
+/* Progress bar glow effect */
+@keyframes progress-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px theme('colors.brand.500' / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 16px theme('colors.brand.500' / 0.4);
+  }
+}
+
+/* Floating action button animations */
+@keyframes float-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Badge animations */
+@keyframes badge-bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0,0,0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -4px, 0);
+  }
+  70% {
+    transform: translate3d(0, -2px, 0);
+  }
+  90% {
+    transform: translate3d(0, -1px, 0);
+  }
+}
+
+/* Loading skeleton */
+@keyframes skeleton-loading {
+  0% {
+    background-position: -200px 0;
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+    opacity: 0.6;
+  }
+}
+
+/* Notification Animations */
+@keyframes notification-float {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+}
+
+@keyframes notification-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px theme('colors.brand.500' / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 16px theme('colors.brand.500' / 0.3);
+  }
+}
+
+@keyframes notification-pulse-border {
+  0% {
+    border-color: theme('colors.brand.500' / 0.2);
+  }
+  50% {
+    border-color: theme('colors.brand.500' / 0.4);
+  }
+  100% {
+    border-color: theme('colors.brand.500' / 0.2);
+  }
+}
+
+/* Notification status indicators */
+@keyframes notification-ping {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  75%, 100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Bell ring animation for notifications */
+@keyframes ring {
+  0% { transform: rotate(0); }
+  10% { transform: rotate(-10deg); }
+  20% { transform: rotate(8deg); }
+  30% { transform: rotate(-6deg); }
+  40% { transform: rotate(4deg); }
+  50% { transform: rotate(-2deg); }
+  60% { transform: rotate(0); }
+  100% { transform: rotate(0); }
+}
+
+/* Enhanced utility classes with refined animations */
+.animate-fade-in {
+  animation: fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-counter {
+  animation: counter 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.project-float {
+  animation: project-float 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.progress-fill {
+  animation: progress-fill 2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .shimmer {
@@ -80,65 +248,31 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  animation: shimmer 2s infinite;
-}
-
-/* Pulse effect for priority indicators */
-@keyframes priority-pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.05);
-  }
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  animation: shimmer 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .priority-pulse {
-  animation: priority-pulse 2s ease-in-out infinite;
-}
-
-/* Gradient text animation */
-@keyframes gradient-shift {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
+  animation: priority-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .gradient-text {
   background: linear-gradient(-45deg, theme('colors.brand.500'), theme('colors.accent.500'), theme('colors.pink.500'), theme('colors.warning.500'));
   background-size: 400% 400%;
-  animation: gradient-shift 3s ease infinite;
+  animation: gradient-shift 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Card hover effects */
+/* Enhanced card hover effects */
 .card-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-hover:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 25px 50px -12px theme('colors.brand.500' / 0.15), 0 10px 20px -5px theme('colors.brand.500' / 0.1);
-}
-
-/* Button ripple effect */
-@keyframes ripple {
-  0% {
-    transform: scale(0);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(4);
-    opacity: 0;
-  }
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 20px 40px -12px theme('colors.brand.500' / 0.12), 0 8px 16px -4px theme('colors.brand.500' / 0.08);
 }
 
 .ripple {
@@ -154,105 +288,47 @@
   width: 0;
   height: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.4);
   transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ripple:active::before {
-  width: 300px;
-  height: 300px;
-}
-
-/* Status indicator animations */
-@keyframes status-blink {
-  0%, 50% {
-    opacity: 1;
-  }
-  51%, 100% {
-    opacity: 0.3;
-  }
+  width: 200px;
+  height: 200px;
 }
 
 .status-active {
-  animation: status-blink 2s ease-in-out infinite;
+  animation: status-blink 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Team avatar hover effects */
+/* Enhanced team avatar hover effects */
 .avatar-hover {
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .avatar-hover:hover {
-  transform: scale(1.2) translateY(-2px);
+  transform: scale(1.15) translateY(-1px);
   z-index: 10;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-}
-
-/* Progress bar glow effect */
-@keyframes progress-glow {
-  0%, 100% {
-    box-shadow: 0 0 5px theme('colors.brand.500' / 0.3);
-  }
-  50% {
-    box-shadow: 0 0 20px theme('colors.brand.500' / 0.6);
-  }
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .progress-glow {
-  animation: progress-glow 2s ease-in-out infinite;
-}
-
-/* Floating action button animations */
-@keyframes float-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  animation: progress-glow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .float-up {
-  animation: float-up 0.3s ease-out;
-}
-
-/* Badge animations */
-@keyframes badge-bounce {
-  0%, 20%, 53%, 80%, 100% {
-    transform: translate3d(0,0,0);
-  }
-  40%, 43% {
-    transform: translate3d(0, -8px, 0);
-  }
-  70% {
-    transform: translate3d(0, -4px, 0);
-  }
-  90% {
-    transform: translate3d(0, -2px, 0);
-  }
+  animation: float-up 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .badge-bounce {
-  animation: badge-bounce 1s ease-in-out;
-}
-
-/* Loading skeleton */
-@keyframes skeleton-loading {
-  0% {
-    background-position: -200px 0;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-  }
+  animation: badge-bounce 1.2s cubic-bezier(0.4, 0, 0.6, 1);
 }
 
 .skeleton {
   background: linear-gradient(90deg, theme('colors.neutral.100') 25%, theme('colors.neutral.200') 50%, theme('colors.neutral.100') 75%);
   background-size: 200px 100%;
-  animation: skeleton-loading 1.5s infinite;
+  animation: skeleton-loading 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .dark .skeleton {
@@ -260,246 +336,9 @@
   background-size: 200px 100%;
 }
 
-/* React Select Styling */
-.react-select-container .react-select__control {
-  @apply border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900;
-}
-
-.react-select-container .react-select__control:hover {
-  @apply border-neutral-400 dark:border-neutral-600;
-}
-
-.react-select-container .react-select__control--is-focused {
-  @apply border-brand-500 ring-2 ring-brand-500 ring-opacity-20;
-  box-shadow: 0 0 0 2px theme('colors.brand.500' / 0.2);
-}
-
-.react-select-container .react-select__single-value {
-  @apply text-neutral-900 dark:text-neutral-100;
-}
-
-.react-select-container .react-select__placeholder {
-  @apply text-neutral-500 dark:text-neutral-400;
-}
-
-.react-select-container .react-select__menu {
-  @apply bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700;
-}
-
-.react-select-container .react-select__option {
-  @apply text-neutral-900 dark:text-neutral-100;
-}
-
-.react-select-container .react-select__option--is-focused {
-  @apply bg-brand-50 dark:bg-brand-900;
-}
-
-.react-select-container .react-select__option--is-selected {
-  @apply bg-brand-600 text-white;
-}
-
-.react-select-container .react-select__multi-value {
-  @apply bg-brand-100 dark:bg-brand-900;
-}
-
-.react-select-container .react-select__multi-value__label {
-  @apply text-brand-800 dark:text-brand-200;
-}
-
-.react-select-container .react-select__multi-value__remove {
-  @apply text-brand-600 dark:text-brand-400 hover:bg-brand-200 dark:hover:bg-brand-800;
-}
-
-/* Enhanced Calendar Styling */
-.enhanced-calendar {
-  @apply w-full;
-}
-
-.enhanced-calendar .react-calendar {
-  @apply w-full border-none bg-transparent font-sans;
-}
-
-.enhanced-calendar .react-calendar__navigation {
-  @apply flex items-center justify-between mb-6 px-2;
-}
-
-.enhanced-calendar .react-calendar__navigation button {
-  @apply p-3 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all duration-200 text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white font-medium;
-}
-
-.enhanced-calendar .react-calendar__navigation button:enabled:hover,
-.enhanced-calendar .react-calendar__navigation button:enabled:focus {
-  @apply bg-neutral-100 dark:bg-neutral-800 transform scale-105;
-}
-
-.enhanced-calendar .react-calendar__navigation__label {
-  @apply text-lg font-semibold text-neutral-900 dark:text-white;
-}
-
-.enhanced-calendar .react-calendar__month-view__weekdays {
-  @apply grid grid-cols-7 gap-2 mb-4;
-}
-
-.enhanced-calendar .react-calendar__month-view__weekdays__weekday {
-  @apply text-center text-sm font-semibold text-neutral-600 dark:text-neutral-400 py-3 uppercase tracking-wider;
-}
-
-.enhanced-calendar .react-calendar__month-view__weekdays__weekday abbr {
-  @apply no-underline;
-}
-
-.enhanced-calendar .react-calendar__month-view__days {
-  @apply grid grid-cols-7 gap-2;
-}
-
-.enhanced-calendar .react-calendar__tile {
-  @apply relative p-4 text-center rounded-xl border-2 border-transparent transition-all duration-300 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-lg hover:scale-105 cursor-pointer min-h-[60px] flex flex-col items-center justify-center;
-}
-
-.enhanced-calendar .react-calendar__tile:enabled:hover,
-.enhanced-calendar .react-calendar__tile:enabled:focus {
-  @apply bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 transform scale-105 shadow-lg;
-}
-
-.enhanced-calendar .react-calendar__tile--now {
-  @apply bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 font-bold ring-2 ring-brand-400 dark:ring-brand-600 animate-pulse;
-}
-
-.enhanced-calendar .react-calendar__tile--active {
-  @apply bg-brand-600 text-white font-bold shadow-xl transform scale-110;
-}
-
-.enhanced-calendar .react-calendar__tile--active:enabled:hover,
-.enhanced-calendar .react-calendar__tile--active:enabled:focus {
-  @apply bg-brand-700 text-white;
-}
-
-.enhanced-calendar .react-calendar__tile--neighboringMonth {
-  @apply text-neutral-400 dark:text-neutral-600 opacity-50;
-}
-
-.enhanced-calendar .react-calendar__tile--hasActive {
-  @apply bg-brand-600 text-white;
-}
-
-/* Calendar tile custom classes */
-.calendar-tile {
-  @apply text-neutral-900 dark:text-neutral-100 font-medium;
-}
-
-.calendar-tile.today-tile {
-  @apply bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/50 dark:to-brand-800/50 text-brand-800 dark:text-brand-200 font-bold shadow-md;
-}
-
-.calendar-tile.selected-tile {
-  @apply bg-gradient-to-br from-brand-600 to-brand-700 text-white font-bold shadow-xl;
-}
-
-.calendar-tile.has-events {
-  @apply relative;
-}
-
-.calendar-tile.has-events::after {
-  content: '';
-  @apply absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-warning-500 rounded-full animate-pulse;
-}
-
-/* Calendar animations */
-@keyframes calendar-bounce {
-  0%, 20%, 53%, 80%, 100% {
-    transform: translate3d(0,0,0) scale(1);
-  }
-  40%, 43% {
-    transform: translate3d(0, -8px, 0) scale(1.1);
-  }
-  70% {
-    transform: translate3d(0, -4px, 0) scale(1.05);
-  }
-  90% {
-    transform: translate3d(0, -2px, 0) scale(1.02);
-  }
-}
-
-.calendar-bounce {
-  animation: calendar-bounce 1s ease-in-out;
-}
-
-/* Event indicators */
-.event-indicator {
-  @apply absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-0.5;
-}
-
-.event-dot {
-  @apply w-1.5 h-1.5 rounded-full animate-pulse;
-}
-
-/* Hover tooltips */
-.calendar-tooltip {
-  @apply absolute z-10 px-3 py-2 text-sm bg-neutral-900 dark:bg-neutral-700 text-white rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none;
-  transform: translateX(-50%) translateY(-100%);
-  top: -8px;
-  left: 50%;
-}
-
-.calendar-tooltip::after {
-  content: '';
-  @apply absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-neutral-900 dark:border-t-neutral-700;
-}
-
-/* Responsive calendar */
-@media (max-width: 768px) {
-  .enhanced-calendar .react-calendar__tile {
-    @apply p-2 min-h-[50px] text-sm;
-  }
-  
-  .enhanced-calendar .react-calendar__navigation button {
-    @apply p-2;
-  }
-}
-
-/* Notification Animations */
-@keyframes notification-float {
-  0%, 100% {
-    transform: translateY(0px) scale(1);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  }
-  25% {
-    transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  }
-  50% {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  }
-  75% {
-    transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  }
-}
-
-@keyframes notification-glow {
-  0%, 100% {
-    box-shadow: 0 0 5px theme('colors.brand.500' / 0.3);
-  }
-  50% {
-    box-shadow: 0 0 20px theme('colors.brand.500' / 0.6), 0 0 30px theme('colors.brand.500' / 0.4);
-  }
-}
-
-@keyframes notification-pulse-border {
-  0% {
-    border-color: theme('colors.brand.500' / 0.3);
-  }
-  50% {
-    border-color: theme('colors.brand.500' / 0.8);
-  }
-  100% {
-    border-color: theme('colors.brand.500' / 0.3);
-  }
-}
-
+/* Enhanced notification animations */
 .notification-float {
-  animation: notification-float 3s ease-in-out infinite, notification-glow 2s ease-in-out infinite, notification-pulse-border 2s ease-in-out infinite;
+  animation: notification-float 4s cubic-bezier(0.4, 0, 0.6, 1) infinite, notification-glow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   position: relative;
   z-index: 10;
 }
@@ -507,45 +346,33 @@
 .notification-float::before {
   content: '';
   position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(45deg, theme('colors.brand.500' / 0.3), theme('colors.brand.300' / 0.3), theme('colors.brand.500' / 0.3));
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(45deg, theme('colors.brand.500' / 0.2), theme('colors.brand.300' / 0.2), theme('colors.brand.500' / 0.2));
   border-radius: inherit;
   z-index: -1;
-  animation: notification-pulse-border 2s ease-in-out infinite;
+  animation: notification-pulse-border 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .notification-stable {
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }
 
 .notification-stable:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Notification status indicators */
-@keyframes notification-ping {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  75%, 100% {
-    transform: scale(2);
-    opacity: 0;
-  }
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .notification-ping {
-  animation: notification-ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  animation: notification-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-/* Notification button animations */
+/* Enhanced notification button animations */
 .notification-button {
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
@@ -557,10 +384,10 @@
   left: 50%;
   width: 0;
   height: 0;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  transition: width 0.3s ease, height 0.3s ease;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .notification-button:hover::before {
@@ -569,10 +396,10 @@
 }
 
 .notification-button:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 
-/* Unread notification special effects */
+/* Enhanced unread notification effects */
 .notification-unread {
   position: relative;
   overflow: visible;
@@ -581,18 +408,18 @@
 .notification-unread::after {
   content: '';
   position: absolute;
-  top: -5px;
-  right: -5px;
-  width: 10px;
-  height: 10px;
+  top: -4px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
   background: linear-gradient(45deg, theme('colors.brand.500'), theme('colors.brand.700'));
   border-radius: 50%;
-  animation: notification-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  animation: notification-ping 3s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-/* Notification stats cards */
+/* Enhanced notification stats cards */
 .notification-stats-card {
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
@@ -604,8 +431,8 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .notification-stats-card:hover::before {
@@ -613,23 +440,23 @@
 }
 
 .notification-stats-card:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
 }
 
-/* Dark mode specific notification styles */
+/* Enhanced dark mode notification styles */
 .dark .notification-float {
-  animation: notification-float 3s ease-in-out infinite, notification-glow 2s ease-in-out infinite;
+  animation: notification-float 4s cubic-bezier(0.4, 0, 0.6, 1) infinite, notification-glow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .dark .notification-float::before {
-  background: linear-gradient(45deg, theme('colors.brand.500' / 0.4), theme('colors.brand.300' / 0.4), theme('colors.brand.500' / 0.4));
+  background: linear-gradient(45deg, theme('colors.brand.500' / 0.3), theme('colors.brand.300' / 0.3), theme('colors.brand.500' / 0.3));
 }
 
-/* Responsive notification styles */
+/* Enhanced responsive notification styles */
 @media (max-width: 768px) {
   .notification-float {
-    animation-duration: 4s;
+    animation-duration: 5s;
   }
   
   .notification-button {
@@ -638,20 +465,8 @@
   }
 }
 
-/* Bell ring animation for notifications */
-@keyframes ring {
-  0% { transform: rotate(0); }
-  10% { transform: rotate(-15deg); }
-  20% { transform: rotate(10deg); }
-  30% { transform: rotate(-10deg); }
-  40% { transform: rotate(6deg); }
-  50% { transform: rotate(-4deg); }
-  60% { transform: rotate(0); }
-  100% { transform: rotate(0); }
-}
-
 .animate-ring { 
-  animation: ring 1s infinite; 
+  animation: ring 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite; 
 }
 
 /* Accessibility improvements */
@@ -668,15 +483,26 @@
   .status-active,
   .progress-glow,
   .badge-bounce,
-  .skeleton-loading {
+  .skeleton-loading,
+  .animate-fade-in,
+  .animate-counter,
+  .animate-ring {
     animation: none;
   }
   
   .notification-float {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
   }
   
   .card-hover:hover {
+    transform: none;
+  }
+  
+  .avatar-hover:hover {
+    transform: none;
+  }
+  
+  .notification-button:active {
     transform: none;
   }
 }
